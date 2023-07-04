@@ -1,2 +1,4 @@
-,problem_number, time_solved
-0,1.0,1000.0
+problem_number, time_solved
+2.0,0.0
+1.0,1000.0
+3.0,32000.0
