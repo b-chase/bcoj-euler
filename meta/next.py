@@ -15,7 +15,7 @@ def load_problem(pnum:int):
     problem_html = requests.get(url=problem_url).content
     try:
         with open(f'solutions/problem{pnum}.py', 'x') as f:
-            f.write(f'''"""{problem_html.decode()}"""\n\nimport euler_math as em\n\ndef solve():\n\tpass''')
+            f.write(f'''"""{problem_html.decode()}"""\n\nimport euler_math as em\n\ndef solve(debug=False):\n    pass''')
     except FileExistsError:
         print("The specified problem file already exists!")
 

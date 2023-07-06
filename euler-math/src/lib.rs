@@ -1,10 +1,21 @@
-use pyo3::{prelude::*, exceptions::PyTypeError};
+use pyo3::{prelude::*, exceptions::PyTypeError, intern};
 use rayon;
 
+/// A Python module implemented in Rust.
+#[pymodule]
+fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
+    // m.add_function(wrap_pyfunction!(Fibonacci, m)?)?;
+    m.add_class::<Fibonacci>()?;
+    m.add_function(wrap_pyfunction!(get_primes, m)?)?;
+    m.add_function(wrap_pyfunction!(int_sqrt, m)?)?;
+    m.add_function(wrap_pyfunction!(sum_to_n, m)?)?;
+    m.add_function(wrap_pyfunction!(divisors_of_n, m)?)?;
+    Ok(())
+}
 
 #[pyfunction]
 fn int_sqrt(num: u128) -> PyResult<u128> {
-    if num <= 0 {
+    if num <= 1 {
         return Ok(num);
     } else {
         let mut high = num / 2;
@@ -17,6 +28,52 @@ fn int_sqrt(num: u128) -> PyResult<u128> {
 
         return Ok(high);
     }
+
+}
+
+#[pyfunction]
+fn sum_to_n(n:u128) -> PyResult<u128> {
+    Ok(n * (n+1) / 2)
+}
+
+#[pyfunction]
+fn divisors_of_n(n:usize) -> PyResult<Vec<usize>> {
+    let max_div = int_sqrt(n as u128).unwrap() as usize;
+    
+    let mut smalls = vec![1_usize];
+    let mut bigs = vec![n];
+    for div in 2..=max_div {
+        if n % div == 0 {
+            smalls.push(div);
+            let big_div = n / div;
+            if big_div > div {bigs.push(big_div);}
+        }
+    }
+    bigs.reverse();
+    smalls.append(&mut bigs);
+
+    Ok(smalls)
+
+    /*
+    let mut is_div = vec![true;max_div];
+
+    for div in 2..=max_div {
+        if !is_div[div-1] {continue;}
+
+        let rem = n % div;
+        if rem > 0 {
+            for mdiv in (div..=max_div).step_by(div) {
+                is_div[mdiv-1] = false;
+            }
+        }
+    }
+    
+    Ok(
+        is_div.into_iter().enumerate()
+            .filter_map(|(i,x)| if x {Some(i+1)} else {None})
+            .collect::<Vec<usize>>()
+    )
+    */
 
 }
 
@@ -35,7 +92,7 @@ fn get_primes(max_n: u128) -> PyResult<Vec<u128>> {
     
     Ok(
         nums.into_iter()
-            .filter(|&x| x > 0)
+            .filter(|&x| x > 1)
             .collect::<Vec<u128>>()
     )
 }
@@ -70,17 +127,3 @@ impl Fibonacci {
     }
 }
 
-// #[pyfunction]
-// fn Fibonacci(n: i128) -> PyResult<i128> {
-//     0
-// }
-
-/// A Python module implemented in Rust.
-#[pymodule]
-fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
-    // m.add_function(wrap_pyfunction!(Fibonacci, m)?)?;
-    m.add_class::<Fibonacci>()?;
-    m.add_function(wrap_pyfunction!(get_primes, m)?)?;
-    m.add_function(wrap_pyfunction!(int_sqrt, m)?)?;
-    Ok(())
-}
