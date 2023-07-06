@@ -13,11 +13,22 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(divisors_of_n, m)?)?;
     m.add_class::<Period>()?;
     m.add_function(wrap_pyfunction!(periodicity, m)?)?;
-    m.add("__all__", vec!["Fibonacci", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity"])?;
+    m.add_function(wrap_pyfunction!(gcd, m)?)?;
+
+    m.add("__all__", vec!["Fibonacci", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd"])?;
     
     Ok(())
 }
 
+#[pyfunction]
+fn gcd(mut a: u32, mut b: u32) -> PyResult<u32> {
+    while b != 0 {
+        let remainder = a % b;
+        a = b;
+        b = remainder;
+    }
+    Ok(a)
+}
 
 #[pyclass(get_all)]
 struct Period {

@@ -13,13 +13,13 @@ import euler_math as em
 def solve(debug=False):
     pandigitals = []
     
-    for a in range(2,100):
+    for a in range(2,200):
         sa = str(a)
         set_a = set(sa)
         if '0' in sa or len(set_a) < len(sa):
             continue
             
-        for b in range(a+1, 1000):
+        for b in range(a+1, 5000):
             sb = str(b)
             set_b = set(sb)
             if '0' in sb or len(set_b) < len(sb) \
