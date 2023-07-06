@@ -26,7 +26,7 @@ if cli_pno:
 else:
     print("Loading next unsolved problem based on results in 'solutions/solved.txt'")
 
-solved_df = pd.read_csv('solutions/solved.txt')
+solved_df = pd.read_csv('solutions/solved_list.txt')
 
 solved_pnos = set(solved_df['problem_number'].values)
 

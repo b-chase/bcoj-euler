@@ -13,16 +13,17 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(divisors_of_n, m)?)?;
     m.add_class::<Period>()?;
     m.add_function(wrap_pyfunction!(periodicity, m)?)?;
-    m.add("__all__", vec!["get_primes", "int_sqrt", "sum_to_n", "divisors_of_n"])?;
+    m.add("__all__", vec!["Fibonacci", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity"])?;
     
     Ok(())
 }
 
 
-#[pyclass]
+#[pyclass(get_all)]
 struct Period {
     repetitions: usize,
-    period_length: Option<usize>
+    period_length: Option<usize>, 
+    pattern: Option<Vec<i32>>
 }
 
 #[pyfunction]
@@ -44,12 +45,12 @@ fn periodicity(seq: Vec<i32>) -> PyResult<Period> {
             }
 
             if all_match {
-                return Ok(Period {repetitions: sub_seq.len() / plen, period_length: Some(plen)});
+                return Ok(Period {repetitions: sub_seq.len() / plen, period_length: Some(plen), pattern: Some(Vec::from(pattern))});
             }
         }
     }
 
-    let no_match = Period {repetitions: 0, period_length: None};
+    let no_match = Period {repetitions: 0, period_length: None, pattern: None};
     Ok(no_match)
 }
 
@@ -94,27 +95,6 @@ fn divisors_of_n(n:usize) -> PyResult<Vec<usize>> {
     smalls.append(&mut bigs);
 
     Ok(smalls)
-
-    /*
-    let mut is_div = vec![true;max_div];
-
-    for div in 2..=max_div {
-        if !is_div[div-1] {continue;}
-
-        let rem = n % div;
-        if rem > 0 {
-            for mdiv in (div..=max_div).step_by(div) {
-                is_div[mdiv-1] = false;
-            }
-        }
-    }
-    
-    Ok(
-        is_div.into_iter().enumerate()
-            .filter_map(|(i,x)| if x {Some(i+1)} else {None})
-            .collect::<Vec<usize>>()
-    )
-    */
 
 }
 
