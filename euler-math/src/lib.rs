@@ -1,4 +1,5 @@
-use pyo3::{prelude::*, exceptions::PyTypeError, intern};
+use pyo3::{prelude::*, exceptions::PyTypeError};
+#[allow(unused)]
 use rayon;
 
 /// A Python module implemented in Rust.
@@ -10,8 +11,48 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(int_sqrt, m)?)?;
     m.add_function(wrap_pyfunction!(sum_to_n, m)?)?;
     m.add_function(wrap_pyfunction!(divisors_of_n, m)?)?;
+    m.add_class::<Period>()?;
+    m.add_function(wrap_pyfunction!(periodicity, m)?)?;
+    m.add("__all__", vec!["get_primes", "int_sqrt", "sum_to_n", "divisors_of_n"])?;
+    
     Ok(())
 }
+
+
+#[pyclass]
+struct Period {
+    repetitions: usize,
+    period_length: Option<usize>
+}
+
+#[pyfunction]
+fn periodicity(seq: Vec<i32>) -> PyResult<Period> {
+    for pstart in 0..(seq.len()) {
+        let sub_seq = &seq[pstart..(seq.len())];
+    
+        for plen in 1..=(sub_seq.len()/2) {
+            let even_divide = sub_seq.len() % plen == 0;
+            let chunks = sub_seq.chunks_exact(plen).collect::<Vec<&[i32]>>();
+            let pattern = chunks[0];
+            
+            let mut all_match = chunks.iter()
+                .fold(true, |acc, &chk| acc && chk.iter().zip(pattern.iter()).all(|(a,b)| a==b));
+
+            if !even_divide {
+                let rem_ct = sub_seq.len() % plen;
+                all_match = all_match && sub_seq.ends_with(&pattern[0..rem_ct]);
+            }
+
+            if all_match {
+                return Ok(Period {repetitions: sub_seq.len() / plen, period_length: Some(plen)});
+            }
+        }
+    }
+
+    let no_match = Period {repetitions: 0, period_length: None};
+    Ok(no_match)
+}
+
 
 #[pyfunction]
 fn int_sqrt(num: u128) -> PyResult<u128> {

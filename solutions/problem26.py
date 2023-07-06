@@ -18,41 +18,10 @@
 import euler_math as em
 
 def solve(debug=False):
-    rec_min = 3
+    
+    N = 1000
 
-    best, res = 0, 0
-    for n in range(1,1000):
-        if n < 11:
-            m = 10
-        elif n < 101:
-            m = 100
-        elif n < 1001:
-            m = 1000
-        
-        rec = 0
+    for d in range(1,N):
         digits = []
-        while True:
-            d = m // n
-            rem = m % n
-            digits.append(d)
-            if rem == 0:
-                break
-            else:
-                m = rem * 10
-
-            print(n, digits)
-            for i in range(len(digits)//3):
-                pattern = digits[0:i]
-                if pattern == digits[(i+1):(2*i)] and pattern == digits[(2*i+1):(3*i)]:
-                    rec = 3
-                    digits = pattern
-                    break
-            if rec > 0:
-                if len(digits) > best:
-                    best, res = len(digits), n
-                    break
-        print(res)
-                
-
-
+        
 
