@@ -9,15 +9,28 @@
 import euler_math as em
 
 def solve(debug=False):
-    N = 24 # 28123
+    N = 28123
     
     abundant_nums = []
     
     for x in range(N):
         sum_div_x = sum(em.divisors_of_n(x)[:-1])
-        if sum_div_x >= x:
+        if sum_div_x > x:
             abundant_nums.append(x)
     
-    print(abundant_nums)
+    abundant_ct = len(abundant_nums)
+
+    not_abundant_sum = [1] * N
+
+    for i in range(1, abundant_ct):
+        a = abundant_nums[i]
+        for j in range(i, abundant_ct):
+            b = abundant_nums[j]
+            if a+b >= N:
+                break
+            not_abundant_sum[a+b] = 0
+
+    res = sum(i for i, x in enumerate(not_abundant_sum) if x==1)
+    print(res)
     
-    pass
+    

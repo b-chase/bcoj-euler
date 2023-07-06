@@ -118,6 +118,14 @@ impl Fibonacci {
         Ok(self.num)
     }
 
+    fn __repr__(& self) -> PyResult<String> {
+        Ok(self.num.to_string())
+    }
+
+    fn __str__(& self) -> PyResult<String> {
+        Ok(self.num.to_string())
+    }
+
     fn incr_by(&mut self, times: usize) -> PyResult<i128> {
         let mut res=Err(PyErr::new::<PyTypeError,_>("Failed to get new Fib number."));
         for _i in 0..times {
