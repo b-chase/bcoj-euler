@@ -1,6 +1,7 @@
 import pandas as pd
 from argparse import ArgumentParser
 import requests
+import os
 
 
 ap = ArgumentParser()
@@ -15,9 +16,11 @@ def load_problem(pnum:int):
     problem_html = requests.get(url=problem_url).content
     try:
         with open(f'solutions/problem{pnum}.py', 'x') as f:
-            f.write(f'''"""{problem_html.decode()}"""\n\nimport euler_math as em\n\ndef solve(debug=False):\n    pass''')
+            f.write(f'''"""{problem_html.decode()}"""\n\n''')
+            f.write('''import euler_math as em\n\ndef solve(debug=False):\n    \n    res=0\n    \n    print(f"*** Answer: {res} ***")''')
     except FileExistsError:
         print("The specified problem file already exists!")
+    os.system(f"code solutions/problem{pnum}.py -r")
 
 if cli_pno:
     print(f"Loading problem # {cli_pno}")
