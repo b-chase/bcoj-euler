@@ -12,9 +12,22 @@
 """
 
 import euler_math as em
+from solutions.euler_tools import permute_down
 
 def solve(debug=False):
     
-    res=None
+    res=0
+    
+    num = list(int(x) for x in '9876543210')
+    plist = enumerate([2, 3, 5, 7, 11, 13, 17])
+    
+    while num[0] > 0:
+        
+        for i, p in plist:
+            sub_digits = num[i+1:i+4]
+            num = sub_digits[0]*100 + sub_digits[1]*10 + sub_digits[2]
+            
+        break
+        
     
     print(f"*** Answer: {res} ***")
