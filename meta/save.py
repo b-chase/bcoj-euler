@@ -28,3 +28,7 @@ solved_list.to_csv(solved_list_file,index=False)
 problem_file = f'solutions/problem{pnum}.py'
 os.rename(problem_file, f'solutions/solved/problem{pnum}.py')
 
+problem_text = f'solutions/problem{pnum}.txt'
+if os.path.exists(problem_text):
+    os.rename(problem_text, f'solutions/solved/problem{pnum}.txt')
+

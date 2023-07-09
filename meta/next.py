@@ -17,7 +17,7 @@ def load_problem(pnum:int):
     try:
         with open(f'solutions/problem{pnum}.py', 'x') as f:
             f.write(f'''"""{problem_html.decode()}"""\n\n''')
-            f.write('''import euler_math as em\n\ndef solve(debug=False):\n    \n    res=0\n    \n    print(f"*** Answer: {res} ***")''')
+            f.write('''import euler_math as em\n\ndef solve(debug=False):\n    \n    res=None\n    \n    print(f"*** Answer: {res} ***")''')
     except FileExistsError:
         print("The specified problem file already exists!")
     os.system(f"code solutions/problem{pnum}.py -r")

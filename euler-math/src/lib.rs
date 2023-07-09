@@ -91,6 +91,13 @@ fn sum_to_n(n:u128) -> PyResult<u128> {
 
 #[pyfunction]
 fn divisors_of_n(n:usize) -> PyResult<Vec<usize>> {
+
+    if n == 1 {
+        return Ok(vec![1]);
+    } else if n <= 3 {
+        return Ok(vec![1, n])
+    }
+
     let max_div = int_sqrt(n as u128).unwrap() as usize;
     
     let mut smalls = vec![1_usize];
@@ -111,20 +118,20 @@ fn divisors_of_n(n:usize) -> PyResult<Vec<usize>> {
 
 #[pyfunction]
 fn get_primes(max_n: u128) -> PyResult<Vec<u128>> {
+    let mut is_prime = vec![true;1+(max_n as usize)];
 
-    let mut nums = (0..=max_n).into_iter()
-        .collect::<Vec<u128>>();
+    let max_div = int_sqrt(max_n)?+1;
 
-    for fctr in 2..=(max_n as usize) {
-        if nums[fctr] > 0 {
-            nums.iter_mut().step_by(fctr).skip(2)
-                .for_each(|x| *x = 0);
+    for fctr in 2..=(max_div as usize) {
+        if is_prime[fctr]  {
+            is_prime.iter_mut().step_by(fctr).skip(2)
+                .for_each(|x| *x = false);
         }
     }
     
     Ok(
-        nums.into_iter()
-            .filter(|&x| x > 1)
+        is_prime.into_iter().enumerate().skip(2)
+            .filter_map(|(i, x)| if x {Some(i as u128)} else {None})
             .collect::<Vec<u128>>()
     )
 }
