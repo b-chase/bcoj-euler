@@ -14,8 +14,9 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Period>()?;
     m.add_function(wrap_pyfunction!(periodicity, m)?)?;
     m.add_function(wrap_pyfunction!(gcd, m)?)?;
+    m.add_function(wrap_pyfunction!(prime_factors, m)?)?;
 
-    m.add("__all__", vec!["Fibonacci", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd"])?;
+    m.add("__all__", vec!["Fibonacci", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
     
     Ok(())
 }
@@ -87,6 +88,32 @@ fn int_sqrt(num: u128) -> PyResult<u128> {
 #[pyfunction]
 fn sum_to_n(n:u128) -> PyResult<u128> {
     Ok(n * (n+1) / 2)
+}
+
+#[pyfunction]
+fn prime_factors(n: usize) -> PyResult<Vec<usize>> {
+
+    if n <= 3 {
+        return Ok(vec![n])
+    }
+
+    let mut divs = divisors_of_n(n)?;
+
+    let res = divs.iter_mut().filter_map(|x| {
+        let Ok(x_div) = divisors_of_n(*x) else {todo!()};
+        if x_div.len()==2 {
+            return Some(*x);
+            // let mut x_pow = 1;
+            // while n % x.pow(x_pow) == 0 {
+            //     x_pow += 1;
+            // }
+            // return Some(x.pow(x_pow-1));
+        } else {
+            return None;
+        }
+    }).collect();
+
+    Ok(res)
 }
 
 #[pyfunction]

@@ -12,12 +12,24 @@ def bench_ns(func, iter: int, *args, **kwargs):
         times_ns.append(elapsed_ns)
 
     print(f"Benchmarking: {func.__name__}({args}, {kwargs})")
-    for i, t_ns in enumerate(times_ns):
+    for i, t_ns in enumerate(times_ns[1:min(5, iter)]):
         print(f"{i+1}) {((t_ns/1000) / 1000):.5f} ms")
     
     print(f"Average time: {sum(times_ns)/len(times_ns) / 1000_000:.5f} ms")
     return res
 
 
-b = bench_ns(em.divisors_of_n, 1, 876543219)
+def get_digits_mod(n:int) -> list[int]:
+    d = [n%10]
+    m = n//10
+    while m:
+        d.append(m%10)
+        m//=10
+    d.reverse()
+    return d
+
+
+
+
+b = bench_ns(get_digits_mod, int(1e6), 47124985749238)
 print(b)

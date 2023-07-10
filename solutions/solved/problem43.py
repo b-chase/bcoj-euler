@@ -14,20 +14,35 @@
 import euler_math as em
 from solutions.euler_tools import permute_down
 
+
+
 def solve(debug=False):
     
     res=0
     
     num = list(int(x) for x in '9876543210')
-    plist = enumerate([2, 3, 5, 7, 11, 13, 17])
-    
+    plist = list(enumerate([2, 3, 5, 7, 11, 13, 17]))[::-1]
+    # num = [1, 4, 0, 6, 3, 5, 7, 2, 8, 9]
+
     while num[0] > 0:
-        
+        matches = True
         for i, p in plist:
             sub_digits = num[i+1:i+4]
-            num = sub_digits[0]*100 + sub_digits[1]*10 + sub_digits[2]
-            
-        break
+            x = sub_digits[0]*100 + sub_digits[1]*10 + sub_digits[2]
+            if x % p != 0:
+                matches = False
+                break
+            # elif debug:
+            #     print(x, p, x%p)
+        if matches:
+            tmp = int(''.join(str(z) for z in num))
+            res += tmp
+            if debug:
+                print(tmp, res)
+            elif tmp % 10001 == 0:
+                print(tmp, res)
+        if not permute_down(num):
+            raise ValueError("Cannot permute any further, check permutation code")
         
     
     print(f"*** Answer: {res} ***")

@@ -1,5 +1,33 @@
 # euler_tools
 
+import euler_math as em
+
+def get_digits(n:int) -> list[int]:
+    d = [n%10]
+    m = n//10
+    while m:
+        d.append(m%10)
+        m//=10
+    d.reverse()
+    return d
+
+
+def digits_to_num(digits):
+    return int(''.join(str(x) for x in digits))
+
+
+def is_pent(pn) -> bool:
+        gn = em.int_sqrt((2 * pn) // 3)
+        
+        for i in range(2):
+            guess_n = gn+i
+            tmp = guess_n*(3*guess_n-1)
+
+            if tmp // 2 == pn:
+                return True
+        return False
+
+
 def permute_down(pattern: list) -> bool:
     """Permutes the pattern in place, from high to low.
 
