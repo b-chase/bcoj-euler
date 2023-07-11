@@ -8,9 +8,26 @@
 """
 
 import euler_math as em
+from math import comb
 
 def solve(debug=False):
     
-    res=None
+    res=0
+
+    # comb(N, i) == comb(N, N-i)
+
+    for n in range(1,101):
+        for i in range(1, n-1):
+            c = comb(n, i)
+            if c > 1e6:
+                if debug:
+                    print(n, i, c)
+                # passing = n - 2*(i-1)
+                # print(n, i, passing)
+                res += 1
+                # break
+
+
+
     
     print(f"*** Answer: {res} ***")
