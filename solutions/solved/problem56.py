@@ -4,9 +4,19 @@
 """
 
 import euler_math as em
-
+from solutions.euler_tools import get_digits
 def solve(debug=False):
     
-    res=None
+    res=0
+    
+    for a in range(91,100):
+        for b in range(91,100):
+            a_b = a**b
+            digits = get_digits(a_b)
+            digit_sum = sum(digits)
+            res = max(digit_sum, res)
+            
+            if debug:
+                print(f"Sum digits[{a}^{b}] = {digit_sum}")
     
     print(f"*** Answer: {res} ***")

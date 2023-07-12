@@ -21,6 +21,9 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     Ok(())
 }
 
+// #[pyfunction]
+// fn continued_fraction()
+
 #[pyfunction]
 fn gcd(mut a: u32, mut b: u32) -> PyResult<u32> {
     while b != 0 {
