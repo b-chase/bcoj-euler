@@ -97,7 +97,7 @@ def solve(debug=False):
             return ['HIGH_CARD', *vals]
 
     result_order_list = ['STRAIGHT_FLUSH', '4_OF_A_KIND', 'FULL_HOUSE', 'FLUSH', 'STRAIGHT', '3_OF_A_KIND', '2_PAIR', 'PAIR', 'HIGH_CARD']
-    result_order = {res:i for i, res in enumerate(result_order_list)}
+    result_order = {res:i for i, res in enumerate(result_order_list[::-1])}
 
 
     def game_result(game: list[str]):
@@ -117,26 +117,67 @@ def solve(debug=False):
         poker_games = [x.strip().split(' ') for x in f.readlines()]
 
 
+    
+    
     if debug:
-        test_hand = '3D 4H 4D 4C 4S'.split(' ')
-        test_res = determine_hand(test_hand)
-        print(test_res)
-        quit()
+        test_hands = [
+            '5H 5C 6S 7S KD', 
+            '2C 3S 8S 8D TD', 
+            '5D 8C 9S JS AC', 
+            '2C 5C 7D 8S QH', 
+            '2D 9C AS AH AC', 
+            '3D 6D 7D TD QD', 
+            '4D 6S 9H QH QC', 
+            '3D 6D 7H QD QS', 
+            '2H 2D 4C 4D 4S', 
+            '3C 3D 3S 9S 9D', 
+            'TD KD AD QD JD', 
+            'KS KS KS KS 2H',
+            '3C 5C AC TC JC',
+            '5C 8D 6H 4C 7D'
+        ]
+        poker_games = [[*test_hands[i].split(' '), *test_hands[i+1].split(' ')] for i in range(0,14,2)]
+        print(poker_games)
+        for th in test_hands:
+            test_hand = th.split(' ')
+            test_res = determine_hand(test_hand)
+            print(test_hand, test_res)
+        
 
 
     res_list = []
     p1_wins = 0
+    
     for g in poker_games:
         p1, p2 = game_result(g)
         s1 = result_order[p1[0]]
         s2 = result_order[p2[0]]
 
+        if debug:
+            print()
+            print(f"Player 1: {p1} - {g[0:5]}")
+            print(f"Player 2: {p2} - {g[5:10]}")
+            
         if s1 > s2:
-            p1_wins += 0
+            p1_wins += 1
+            if debug:
+                print(f"Player 1 wins {s1} > {s2}")
+        elif s2 > s1 and debug:
+            print(f"Player 2 wins  {s1} < {s2}")
         elif s1 == s2:
             for j in range(1, len(p1)):
                 if p1[j] > p2[j]:
                     p1_wins += 1
+                    if debug:
+                        print("Player 1 wins")
+                    break
+                elif p1[j] < p2[j]:
+                    if debug:
+                        print("Player 2 wins")
+                    break 
+        
+        if p1 == p2:
+            raise ValueError("Can't have equal hands!")
 
         res_list.append(p1[0])
         res_list.append(p2[0])
