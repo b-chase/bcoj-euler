@@ -11,12 +11,27 @@ $1 + \frac 1 {2 + \frac 1 {2+\frac 1 {2+\frac 1 2}}} = \frac {41}{29} = 1.41379 
 """
 
 import euler_math as em
-
-
+from math import log10
 
 def solve(debug=False):
-    
-    res=None
-    
+    # sqrt(2) fractional approximations come from Pell Numbers: 0, 1, 2, 5, 12, 29,  ...
+    # P_n = (2(P_n-1) + P_n-2)
+    # sqrt(2) ~ ( P_n + P_n-1 ) / P_n-1
+
+    res=0
+
+    pells = em.pell_numbers(1010)  # zero-indexed
+
+    if debug:
+        print(pells[:10])
+    for i in range(1000):
+        denom = pells[i+2]
+        numer = pells[i+2] + pells[i+1]
+
+        if len(str(numer)) > len(str(denom)):
+            res += 1
+            if debug:
+                print(f"{i}: ({int(log10(numer))}:{int(log10(denom))}) sqrt(2) ~= {numer/denom:.6f}")
+
     
     print(f"*** Answer: {res} ***")

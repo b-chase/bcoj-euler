@@ -1,4 +1,7 @@
+use std::ops::Mul;
+
 use pyo3::{prelude::*, exceptions::PyTypeError};
+use num_bigint::BigUint;
 #[allow(unused)]
 use rayon;
 
@@ -15,14 +18,32 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(periodicity, m)?)?;
     m.add_function(wrap_pyfunction!(gcd, m)?)?;
     m.add_function(wrap_pyfunction!(prime_factors, m)?)?;
+    m.add_function(wrap_pyfunction!(pell_numbers, m)?)?;
 
-    m.add("__all__", vec!["Fibonacci", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
+    m.add("__all__", vec!["Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
     
     Ok(())
 }
 
-// #[pyfunction]
-// fn continued_fraction()
+
+
+#[pyfunction]
+fn pell_numbers(max_n: usize) -> PyResult<Vec<BigUint>> {
+
+    let mut back_1: BigUint = BigUint::from(1_u32);
+    let mut back_2: BigUint = BigUint::from(0_u32);
+    let mut pell_nums = vec![back_1.clone(), back_2.clone()];
+    let big_2 = BigUint::from(2_u32);
+    for _n in 2..=max_n {
+        let next_pell_num = &big_2*&back_1 + &back_2;
+        back_2 = back_1;
+        back_1 = next_pell_num.clone();
+        pell_nums.push(next_pell_num.clone());
+    }
+
+    Ok(pell_nums)
+}
+
 
 #[pyfunction]
 fn gcd(mut a: u32, mut b: u32) -> PyResult<u32> {

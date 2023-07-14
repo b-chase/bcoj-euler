@@ -16,7 +16,12 @@ def load_problem(pnum:int):
     problem_html = requests.get(url=problem_url).content
     try:
         with open(f'solutions/problem{pnum}.py', 'x') as f:
-            f.write(f'''"""{problem_html.decode()}"""\n\n''')
+            try:
+                f.write(f"# https://projecteuler.net/problem={pnum}\n")
+                f.write(f'''"""{problem_html.decode()}"""\n\n''')
+            except Exception as e:
+                f.write(f"# There was a problem loading the HTML for this problem\n\n")
+                print(e)
             f.write('''import euler_math as em\n\ndef solve(debug=False):\n    \n    res=None\n    \n    print(f"*** Answer: {res} ***")''')
     except FileExistsError:
         print("The specified problem file already exists!")
