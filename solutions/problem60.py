@@ -4,12 +4,46 @@
 
 """
 
-import euler_math as em
+import euler_math.euler_math as em
+# from solutions.euler_tools import get_digits
+from collections import defaultdict
 
 def solve(debug=False):
     
     res=None
 
+    plist = em.get_primes(1_000_000)
+    max_p = plist[-1]
+    pset = set(plist)
     
+    pairs = defaultdict(lambda: set())
+
+    # check all primes (skipping '2')
+    for p in plist[1:(max_p//10)]:
+        ppot = len(str(p))
+        for i in range(1,ppot):
+            p_right = p % 10**i
+            if p_right < 10**(i-1):
+                continue
+            p_left = p // 10**i
+
+            rev = p_right * 10**(ppot-i) + p_left
+            # print(p_left, p_right, rev)
+
+            if p_right in pset and p_left in pset and rev in pset:
+                pairs[p_left].add(p_right)
+                pairs[p_right].add(p_left)
+
+    def filter_overlapping(check_p_list, min_overlaps)
+        for p1 in check_p_list:
+            matches = pairs[p1]
+            if len(matches) < min_overlaps-1:
+                continue
+            
+            # each subset should overlap with the current one
+            for m in matches:
+                
     
+    res = filter_overlapping(check_p_list=pairs.keys(), min_overlaps=5)
+        
     print(f"*** Answer: {res} ***")
