@@ -1,4 +1,4 @@
-problem_number, time_solved, solved_timestamp
+problem_number, time_solved_us, solved_timestamp
 2.0,0.0,Wed Jul  4 12:00:00 2023
 1.0,1000.0,Wed Jul  4 12:00:00 2023
 3.0,32000.0,Wed Jul  4 12:00:00 2023
