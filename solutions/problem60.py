@@ -12,9 +12,12 @@ def solve(debug=False):
     
     res=None
 
-    plist = em.get_primes(1_000_000)
+    plist = em.get_primes(int(10**8))
     max_p = plist[-1]
     pset = set(plist)
+    
+    if debug:
+        print("Primes Loaded")
     
     pairs = defaultdict(lambda: set())
 
@@ -34,16 +37,35 @@ def solve(debug=False):
                 pairs[p_left].add(p_right)
                 pairs[p_right].add(p_left)
 
-    def filter_overlapping(check_p_list, min_overlaps)
-        for p1 in check_p_list:
-            matches = pairs[p1]
-            if len(matches) < min_overlaps-1:
-                continue
-            
-            # each subset should overlap with the current one
-            for m in matches:
-                
-    
-    res = filter_overlapping(check_p_list=pairs.keys(), min_overlaps=5)
+    if debug:
+        print("All pairs found")
+
+    def find_overlaps(valid_primes: set[int], total_ct: int) -> list[set[int]]:
         
+        if total_ct==1:
+            return list(set([p]) for p in valid_primes)
+        
+        total = []
+        for p1 in valid_primes:
+            p1_pairs = pairs[p1].intersection(valid_primes)
+            
+            p1_sets = find_overlaps(p1_pairs, total_ct-1)
+            base_set = set([p1])
+            p1_out = [base_set.union(x) for x in p1_sets]
+            
+            total.extend(p1_out)
+        
+        return total
+    
+    all_sets = find_overlaps(pset, 5)
+    
+    smallest = float('Inf')
+    for set_p in all_sets:
+        sum_p = sum(set_p)
+        if sum_p < smallest:
+            smallest = sum_p
+            res = [sum_p, set_p]
+    
+    
+    
     print(f"*** Answer: {res} ***")
