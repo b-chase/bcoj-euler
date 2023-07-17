@@ -1,5 +1,4 @@
-use std::ops::{Mul, Div};
-use pyo3::{prelude::*, exceptions::PyTypeError, intern};
+use pyo3::{prelude::*, exceptions::PyTypeError};
 use num_bigint::BigUint;
 #[allow(unused)]
 use rayon;
@@ -32,11 +31,10 @@ struct Fraction {
     denominator: u128
 }
 
-#[pyclass(get_all, iterator)]
+#[pyclass(get_all)]
 struct RootContFraction {
     num: u128, 
     terms: Vec<u128>, 
-    _numer: u128, 
     _denom: u128, 
     _carryover: u128, 
     int_rt: u128
@@ -46,39 +44,36 @@ struct RootContFraction {
 impl RootContFraction {
     #[new]
     fn new(whole_number: u128) -> Self {
-        let int_rt = int_sqrt(num).unwrap();
+        let int_rt = int_sqrt(whole_number).unwrap();
         let terms = vec![int_rt];
         let _carryover = int_rt;
         
         RootContFraction { 
-            num: num, 
+            num: whole_number, 
             terms: terms, 
-            _numer: int_rt, 
             _denom: 1, 
             _carryover: _carryover, 
             int_rt: int_rt 
         }
     }
 
-    fn __next__(&mut self) -> PyResult<u128> {
-        let numer = self._numer;
+    fn next(&mut self) -> u128 {
         let denom = self._denom;
         if denom == 0 {
-            return Ok(0);
+            return 0;
         }
         
         let b = self._carryover;
-        let mut new_numer = self.int_rt + b;
-        let mut new_denom = (self.num - b.pow(2)) / denom;
+        let new_numer = self.int_rt + b;
+        let new_denom = (self.num - b.pow(2)) / denom;
         
-        let next_term = numer.div_euclid(denom);
+        let next_term = new_numer.div_euclid(new_denom);
         
         self.terms.push(next_term);
-        self._numer = new_numer;
         self._denom = new_denom;
         self._carryover = next_term * new_denom - b;
         
-        Ok(next_term)
+        next_term
     }
 
     
@@ -93,7 +88,6 @@ fn root_cont_fraction(num: u128, max_terms: usize) -> PyResult<Vec<u128>> {
     
     let mut res = vec![rt];
     
-    let mut numer = 0;
     let mut denom = 1;
     let mut b = rt;
     for _i in 0..max_terms {
@@ -109,7 +103,7 @@ fn root_cont_fraction(num: u128, max_terms: usize) -> PyResult<Vec<u128>> {
         }
 
         denom = new_denom / denom;
-        numer = (rt + b);
+        let numer = rt + b;
         let new_term = numer.div_euclid(denom);
         b = new_term * denom - b;
         

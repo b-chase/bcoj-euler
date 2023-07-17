@@ -17,30 +17,50 @@ $$x^2 - Dy^2 = 1$$</p>
 """
 
 import euler_math as em
+from solutions.euler_tools import frac_from_seq
 
 def solve(debug=False):
     res=(0,0)
 
-    big_club = []
+    unsolved = []
 
     for D in range(2,1001):
+        if debug:
+            print(f"\n{D}: ", end="")
         if em.int_sqrt(D)**2 == D:
             continue
-        
-        a, b = 1, 1
-        smallest_res = float('Inf')
-        while True:
-            y = a * b
-            tmp_2x = a * (D + b**2)
-            if tmp_2x % 2 == 1:
-                b += 1
-            
+        unsolved.append(D)
+        y = 1
+        while y < 1000:
+            x2 = 1 + D*(y**2)
+            x = em.int_sqrt(x2)
+
+            if x**2 == x2:
+                unsolved.pop()
                 if debug:
-                    print(f"{D}: {x}^2 - {D}*{y}^2 = 1")
+                    print(f" {x}^2 - {D}*{y}^2 = 1", end="")
                 if x > res[1]:
                     res = (D, x)
                 break
 
-    print("Large x,y for D = ", big_club)
-    print(len(big_club))
-    print(f"*** Answer: {res} ***")
+            y += 1
+        
+    # print(unsolved)
+    print("\nNow for still unsolved: ")
+    for ud in unsolved:
+        if debug:
+            print(f"\n{ud}: ", end="")
+        u_frac = em.RootContFraction(ud)
+        while True:
+            u_frac.next()
+            convergent = frac_from_seq(u_frac.terms)
+            try_x = convergent[0]
+            try_y = convergent[1]
+            if try_x**2 - ud*try_y**2 == 1:
+                if debug:
+                    print(f" {try_x}^2 - {ud}*{try_y}^2 = 1", end="")
+                if try_x > res[1]:
+                    res = (ud, try_x)
+                break
+
+    print(f"\n\n*** Answer: {res} ***")
