@@ -35,8 +35,6 @@ def solve(debug=False):
             if tmp_2x % 2 == 1:
                 b += 1
             
-            x = em.int_sqrt(x2)
-            if x**2 == x2:
                 if debug:
                     print(f"{D}: {x}^2 - {D}*{y}^2 = 1")
                 if x > res[1]:

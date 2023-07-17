@@ -1,5 +1,4 @@
 use std::ops::{Mul, Div};
-
 use pyo3::{prelude::*, exceptions::PyTypeError, intern};
 use num_bigint::BigUint;
 #[allow(unused)]
@@ -20,11 +19,70 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(prime_factors, m)?)?;
     m.add_function(wrap_pyfunction!(pell_numbers, m)?)?;
     m.add_function(wrap_pyfunction!(root_cont_fraction, m)?)?;
-    m.add("__all__", vec!["root_cont_fraction", "Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
+    m.add_class::<Fraction>()?;
+    m.add_class::<RootContFraction>()?;
+    m.add("__all__", vec!["RootContFraction", "Fraction", "Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
     
     Ok(())
 }
 
+#[pyclass(get_all)]
+struct Fraction {
+    numerator: u128, 
+    denominator: u128
+}
+
+#[pyclass(get_all, iterator)]
+struct RootContFraction {
+    num: u128, 
+    terms: Vec<u128>, 
+    _numer: u128, 
+    _denom: u128, 
+    _carryover: u128, 
+    int_rt: u128
+}
+
+#[pymethods]
+impl RootContFraction {
+    #[new]
+    fn new(whole_number: u128) -> Self {
+        let int_rt = int_sqrt(num).unwrap();
+        let terms = vec![int_rt];
+        let _carryover = int_rt;
+        
+        RootContFraction { 
+            num: num, 
+            terms: terms, 
+            _numer: int_rt, 
+            _denom: 1, 
+            _carryover: _carryover, 
+            int_rt: int_rt 
+        }
+    }
+
+    fn __next__(&mut self) -> PyResult<u128> {
+        let numer = self._numer;
+        let denom = self._denom;
+        if denom == 0 {
+            return Ok(0);
+        }
+        
+        let b = self._carryover;
+        let mut new_numer = self.int_rt + b;
+        let mut new_denom = (self.num - b.pow(2)) / denom;
+        
+        let next_term = numer.div_euclid(denom);
+        
+        self.terms.push(next_term);
+        self._numer = new_numer;
+        self._denom = new_denom;
+        self._carryover = next_term * new_denom - b;
+        
+        Ok(next_term)
+    }
+
+    
+}
 
 #[pyfunction]
 fn root_cont_fraction(num: u128, max_terms: usize) -> PyResult<Vec<u128>> {
