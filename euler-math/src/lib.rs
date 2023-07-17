@@ -1,6 +1,6 @@
-use std::ops::Mul;
+use std::ops::{Mul, Div};
 
-use pyo3::{prelude::*, exceptions::PyTypeError};
+use pyo3::{prelude::*, exceptions::PyTypeError, intern};
 use num_bigint::BigUint;
 #[allow(unused)]
 use rayon;
@@ -19,12 +19,48 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(gcd, m)?)?;
     m.add_function(wrap_pyfunction!(prime_factors, m)?)?;
     m.add_function(wrap_pyfunction!(pell_numbers, m)?)?;
-
-    m.add("__all__", vec!["Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
+    m.add_function(wrap_pyfunction!(root_cont_fraction, m)?)?;
+    m.add("__all__", vec!["root_cont_fraction", "Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
     
     Ok(())
 }
 
+
+#[pyfunction]
+fn root_cont_fraction(num: u128, max_terms: usize) -> PyResult<Vec<u128>> {
+
+    let rt = int_sqrt(num)?;
+    // a0 + rt(n) - a0 = a0 + (1 / 1 / (rt(n) - a0) ) 
+    // 1/(rt(n)-a0) = (rt(n)+a0) / (n - a0^2) 
+    
+    let mut res = vec![rt];
+    
+    let mut numer = 0;
+    let mut denom = 1;
+    let mut b = rt;
+    for _i in 0..max_terms {
+        let new_denom = num - b.pow(2);
+        if new_denom == 0 {
+            return Ok(res);
+        }
+
+        if new_denom < denom {
+            println!("Error, new denominator {} is larger than previous {}", new_denom, denom);
+            println!("Encountered computing fraction for sqrt({}) : {:?}", num, res);
+            return Ok(res);
+        }
+
+        denom = new_denom / denom;
+        numer = (rt + b);
+        let new_term = numer.div_euclid(denom);
+        b = new_term * denom - b;
+        
+        res.push(new_term);
+
+    }
+
+    Ok(res)
+}
 
 
 #[pyfunction]
@@ -46,7 +82,7 @@ fn pell_numbers(max_n: usize) -> PyResult<Vec<BigUint>> {
 
 
 #[pyfunction]
-fn gcd(mut a: u32, mut b: u32) -> PyResult<u32> {
+fn gcd(mut a: u128, mut b: u128) -> PyResult<u128> {
     while b != 0 {
         let remainder = a % b;
         a = b;

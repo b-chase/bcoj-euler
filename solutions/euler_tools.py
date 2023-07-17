@@ -1,6 +1,21 @@
 # euler_tools
 
 import euler_math as em
+import math
+
+def frac_from_seq(seq: list[int]) -> tuple[int]:
+
+    numer, denom = seq[-1], 1
+    for x in seq[-2:0:-1]:
+        numer, denom = x*numer + denom, numer
+        gdiv = math.gcd(numer, denom)
+        numer //= gdiv
+        denom //= gdiv
+    
+    numer, denom = denom, numer
+    numer += seq[0]*denom
+
+    return (numer, denom)
 
 def get_digits(n:int) -> list[int]:
     d = [n%10]

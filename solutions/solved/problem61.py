@@ -10,8 +10,10 @@
 
 import euler_math as em
 
-def fig_nums(diff_rule, max_num=10_000) -> list[int]:
+def fig_nums(n_type, max_num=10_000) -> list[int]:
     
+    def diff_rule(x):
+        return x + n_type-2
     diff = 1
     n = 0
     output = []
@@ -25,32 +27,53 @@ def fig_nums(diff_rule, max_num=10_000) -> list[int]:
 
 def solve(debug=False):
     all_figs = set()
-    fig_nums = {}
-    for i in range(1,8):
-        figs = fig_nums(lambda x: x+i, 10000) 
+    fig_nums_types = {}
+
+    max_pn = 8
+    
+    for i in range(3,max_pn+1):
+        figs = fig_nums(i, 10000) 
         for fn in figs:
-            if fn % 100 >= 10:
-                fig_nums[fn] = i
+            if fn % 100 >= 10 and fn >= 1000 and fn < 10000:
+                fig_nums_types[fn] = i
                 all_figs.add(fn)
     
     def matching_rule(num1, num2):
         return num1//100 == num2 % 100
     
+    max_seq_len = max_pn-2
     
-    def find_next_match(matched_fig_types: set, loop_start: int):
-        if len(matched_fig_types) == 6:
-            return matched_fig_types
+    def find_next_matches(fig_chains: list[list[int]]):
+        new_chains = []
+
+        for try_chain in fig_chains:
+            last_num = try_chain[-1]
+            seen_types = set(fig_nums_types[fn] for fn in try_chain)
+
+            for fn in all_figs:
+                if fig_nums_types[fn] not in seen_types and matching_rule(fn, last_num):
+                    if len(try_chain) < max_seq_len-1 or matching_rule(try_chain[0], fn):
+                        new_chains.append(try_chain + [fn])
         
-        for fig in all_figs:
-            if fig_nums[fig] in matched_fig_types:
-                continue
-            
-            
+        if len(new_chains) == 0:
+            return []
+        elif len(new_chains[0]) == max_seq_len:
+            return new_chains
+        else:
+            nc_tmp = find_next_matches(new_chains)
+            if len(nc_tmp) == 0:
+                return []
+            else:
+                return nc_tmp
+
     
+    res = find_next_matches([[x] for x in all_figs if fig_nums_types[x] == 3])
     
-    
-    
-    
-    
-    
+
+    if debug:
+        res.sort(key=lambda x: x[0])
+        for r in res:
+            print(', '.join(f"{x} ({fig_nums_types[x]})" for x in r))
+    res = [(x, sum(x)) for x in res]
+
     print(f"*** Answer: {res} ***")
