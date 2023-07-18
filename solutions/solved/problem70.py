@@ -8,7 +8,34 @@
 import euler_math as em
 
 def solve(debug=False):
-    
+
+    plist = em.get_primes(100_000)
     res=None
+    low = float('inf')
+
+    # for n in range(1_000_000, 10_000_000):
+    prime_products = []
+    for i, p_i in enumerate(plist[:-1]):
+        for p_j in plist[i+1:]:
+            n = p_i * p_j
+            if n > 1e7:
+                break
+            tn = (p_i - 1) * (p_j - 1)
+            prime_products.append((n, tn))
     
+    for n, tn in prime_products:
+        
+        # phi_n = em.totient(n)
+        # assert tn == phi_n
+        phi_n = tn
+        
+        ratio = n / phi_n
+        if ratio < low:
+            if tuple(sorted(str(n))) == tuple(sorted(str(phi_n))):
+                if debug:
+                    print(f"phi({n}) = {phi_n}")
+
+                low, res = ratio, n
+
+
     print(f"*** Answer: {res} ***")
