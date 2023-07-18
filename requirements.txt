@@ -2,3 +2,5 @@ requests
 pandas
 maturin
 numpy
+setuptools
+setuptools-rust
