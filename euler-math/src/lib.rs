@@ -27,28 +27,35 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
 }
 
 #[pyfunction]
-fn totient(n: u128) -> PyResult<u128> {
-
-    let mut res = n;
-    let mut num = n;
-    let mut p = 2;
-
-    while p*p <= num {
-        if n % p == 0 {
-            while num % p == 0 {
-                num /= p;
-            }
-            res = res * (p-1) / p;
+fn totient(num: u128) -> PyResult<u128> {
+    let mut result = num + 0;
+    let mut n = num + 0;
+    if n % 2 == 0 {
+        while n % 2 == 0 {
+            n >>= 1;
         }
-        p += 1;
+        result -= result >> 1;
     }
 
-    if num > 1 {
-        res -= res.div_euclid(num);
+    let mut p = 3;
+    while p * p <= n {
+        if n % p == 0 {
+            while n % p == 0 {
+                n = n / p;
+            }
+            result = result - result / p;
+        }
+
+        p += 2;
     }
 
-    Ok(res)
+    if n > 1 {
+        result -= result / n;
+    }
+
+    Ok(result)
 }
+
 
 
 #[pyclass(get_all)]
