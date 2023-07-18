@@ -20,10 +20,43 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(root_cont_fraction, m)?)?;
     m.add_class::<Fraction>()?;
     m.add_class::<RootContFraction>()?;
-    m.add("__all__", vec!["RootContFraction", "Fraction", "Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
+    m.add_function(wrap_pyfunction!(totient, m)?)?;
+    m.add("__all__", vec!["totient", "RootContFraction", "Fraction", "Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
     
     Ok(())
 }
+
+#[pyfunction]
+fn totient(num: u128) -> PyResult<u128> {
+    let mut result = num + 0;
+    let mut n = num + 0;
+    if n % 2 == 0 {
+        while n % 2 == 0 {
+            n >>= 1;
+        }
+        result -= result >> 1;
+    }
+
+    let mut p = 3;
+    while p * p <= n {
+        if n % p == 0 {
+            while n % p == 0 {
+                n = n / p;
+            }
+            result = result - result / p;
+        }
+
+        p += 2;
+    }
+
+    if n > 1 {
+        result -= result / n;
+    }
+
+    Ok(result)
+}
+
+
 
 #[pyclass(get_all)]
 struct Fraction {
