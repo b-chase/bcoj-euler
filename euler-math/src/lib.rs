@@ -1,4 +1,4 @@
-use pyo3::{prelude::*, exceptions::PyTypeError};
+use pyo3::{prelude::*, exceptions::PyTypeError, types::{PyInt, PyFloat}, pyclass::CompareOp};
 use num_bigint::BigUint;
 #[allow(unused)]
 use rayon;
@@ -58,11 +58,147 @@ fn totient(num: u128) -> PyResult<u128> {
 
 
 
-#[pyclass(get_all)]
+#[pyclass(get_all, set_all)]
 struct Fraction {
     numerator: u128, 
     denominator: u128
 }
+
+#[pymethods]
+impl Fraction {
+    #[new]
+    fn new(numer:u128, denom:u128) -> Fraction {
+        Fraction { numerator: numer, denominator: denom }
+    }
+
+    fn reduce(&mut self) -> PyResult<()> {
+
+        let div = gcd(self.numerator, self.denominator)?;
+        self.numerator /= div;
+        self.denominator /= div;
+
+        Ok(())
+    }
+    
+    // fn __add__(&self, other: &PyInt) -> PyResult<Fraction> {
+    //     let ri = u128::from(other.to_string());
+    //     let other_frac = Fraction {numerator: other.extract::<u128>(), denominator: 1};
+    //     Ok(self.__add__(other_frac));
+    // }
+
+    fn __repr__(&self) -> String {
+        format!("{}/{}", self.numerator, self.denominator)
+    }
+
+    fn __eq__(&self, other: &Fraction) -> bool {
+        if self.denominator == other.denominator {
+            return self.numerator == other.denominator;
+        } else {
+            return self.numerator * other.denominator == other.numerator * self.denominator;
+        }
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Lt => Ok(self.__lt__(other)),
+            CompareOp::Le => Ok(self.__le__(other)),
+            CompareOp::Eq => Ok(self.__eq__(other)),
+            CompareOp::Ne => Ok(!self.__eq__(other)),
+            CompareOp::Gt => Ok(self.__gt__(other)),
+            CompareOp::Ge => Ok(self.__ge__(other)),
+        }
+    }
+
+    fn __lt__(&self, other: &Self) -> bool {
+        if self.denominator == other.denominator {
+            return self.numerator < other.denominator;
+        } else {
+            return self.numerator * other.denominator < other.numerator * self.denominator;
+        }
+    }
+
+    fn __gt__(&self, other: &Self) -> bool {
+        if self.denominator == other.denominator {
+            return self.numerator > other.denominator;
+        } else {
+            return self.numerator * other.denominator > other.numerator * self.denominator;
+        }
+    }
+
+    fn __le__(&self, other: &Self) -> bool {
+        if self.denominator == other.denominator {
+            return self.numerator <= other.denominator;
+        } else {
+            return self.numerator * other.denominator <= other.numerator * self.denominator;
+        }
+    }
+
+    fn __ge__(&self, other: &Self) -> bool {
+        if self.denominator == other.denominator {
+            return self.numerator >= other.denominator;
+        } else {
+            return self.numerator * other.denominator  >= other.numerator * self.denominator;
+        }
+    }
+
+    fn __add__(&self, other: &Self) -> PyResult<Fraction> {
+        if self.denominator==other.denominator {
+            return Ok(Fraction {
+                numerator: self.numerator+other.numerator, 
+                denominator: self.denominator
+            })
+        } else {
+            let numer = self.numerator*other.denominator + other.numerator*self.denominator;
+            let denom = self.denominator * other.denominator;
+            let div = gcd(numer, denom)?;
+            return Ok(Fraction {
+                numerator: numer/div, 
+                denominator: denom/div
+            })
+        }
+    }
+
+    fn __sub__(&self, other: &Self) -> PyResult<Fraction> {
+        if self.denominator==other.denominator {
+            return Ok(Fraction {
+                numerator: self.numerator-other.numerator, 
+                denominator: self.denominator
+            })
+        } else {
+            let numer = self.numerator*other.denominator - other.numerator*self.denominator;
+            let denom = self.denominator * other.denominator;
+            let div = gcd(numer, denom)?;
+            return Ok(Fraction {
+                numerator: numer/div, 
+                denominator: denom/div
+            })
+        }
+    }
+
+    fn __mul__(&self, other: &Self) -> PyResult<Fraction> {
+    
+        let numer = self.numerator*other.numerator;
+        let denom = self.denominator * other.denominator;
+        let div = gcd(numer, denom)?;
+        return Ok(Fraction {
+            numerator: numer/div, 
+            denominator: denom/div
+        })
+    }
+
+    fn __truediv__(&self, other: &Self) -> PyResult<Fraction> {
+        let numer = self.numerator*other.denominator;
+        let denom = self.denominator * other.numerator;
+        let div = gcd(numer, denom)?;
+        return Ok(Fraction {
+            numerator: numer/div, 
+            denominator: denom/div
+        })
+    }
+
+}
+
+
 
 #[pyclass(get_all)]
 struct RootContFraction {

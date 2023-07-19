@@ -10,7 +10,20 @@ $$\frac 1 8, \frac 1 7, \frac 1 6, \frac 1 5, \frac 1 4, \frac 2 7, \frac 1 3, \
 import euler_math as em
 
 def solve(debug=False):
-    
-    res=None
+    res = em.Fraction(0, 1)
+    x = em.Fraction(3, 7)
+    z = em.Fraction(300_000, 700_001)
+    assert z < x
+
+    while z.denominator <= 1_000_000:
+        if z < x:
+            if z > res:
+                res = em.Fraction(z.numerator, z.denominator)
+                if debug:
+                    print(f"{res}  <  {x}")
+            z.numerator += 1
+        else:
+            z.denominator += 1
+
     
     print(f"*** Answer: {res} ***")
