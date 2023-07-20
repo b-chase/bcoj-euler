@@ -16,9 +16,37 @@
 """
 
 import euler_math as em
+from collections import Counter
+
 
 def solve(debug=False):
-    
-    res=None
-    
+    max_perimeter = 1_500_000
+
+    # max_perimeter = 50
+
+    seen_triangles = set()
+    triples = Counter()
+
+    for m in range(1, 2*max_perimeter):
+        for n in range(1, m):
+            a = m**2 - n**2
+            b = 2 * m * n
+            c = m**2 + n**2
+
+            tri_triplet = tuple(sorted([a, b, c]))
+            perim = sum(tri_triplet)
+            
+            while perim < max_perimeter and tri_triplet not in seen_triangles:
+                triples[perim] += 1
+                seen_triangles.add(tri_triplet)
+                if debug:
+                    print(perim, ':',triples[perim], '  -  ', tri_triplet)
+                
+                tri_triplet = (tri_triplet[0]+a, tri_triplet[1]+b, tri_triplet[2]+c)
+                perim = sum(tri_triplet)
+
+            if a + b + c > 1_500_000:
+                break
+        
+    res = sum(x for k,x in triples.items() if x==1 and k <= max_perimeter)
     print(f"*** Answer: {res} ***")
