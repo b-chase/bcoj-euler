@@ -1,5 +1,6 @@
 import euler_math as em
 from time import perf_counter_ns
+import math  # noqa: E402
 
 def bench_ns(func, times: int, *args, **kwargs):
     res = None
@@ -38,11 +39,51 @@ def comp_bench(func_list: list, times: int, *args, **kwargs):
         bench_ns(f, int(times), *args, **kwargs)
         print()
 
-import math  # noqa: E402
+def est_runtime(func_of_n, range_n, rep_times=5):
+    avg_times = []
+    for n in range_n:
+        times_ns = []
+        for _ in range(rep_times):
+            start_time = perf_counter_ns()
+            _res = func_of_n(n)
+            end_time = perf_counter_ns()
+            elapsed_ns = end_time - start_time
+            times_ns.append(elapsed_ns)
+        avg_t = sum(times_ns)/len(times_ns)
+        avg_times.append(avg_t)
+        print(f"fn({n}) completed on average in {avg_t/1e6:.5f} us")
+    comp_funcs = {
+        'LogN': (lambda x: math.log(x)), 
+        'N': (lambda x: x), 
+        'NlogN': (lambda x: x*math.log(x)), 
+        'N2': (lambda x: x**2)
+    }
+    
+    rel_times = [t / avg_times[0] for t in avg_times]
+    print("Time Ratios for actual function:", ', '.join([f"{x:.3f}" for x in rel_times]))
+    for cfn in ['LogN', 'N', 'NlogN', 'N2']:
+        fn = comp_funcs[cfn]
+        y0 = fn(range_n[0])
+        cmp_time_rats = [fn(x)/y0 for x in range_n]
+        cmp_time_str = ', '.join(f"{x:.3f}" for x in cmp_time_rats)
+        time_ratios = [a/b for a, b in zip(rel_times, cmp_time_rats)][1:]
+        avg_time_rat = sum(time_ratios) / len(time_ratios)
+        if avg_time_rat>1.1:
+            comp_res = 'Slower than'
+        elif avg_time_rat < 0.9:
+            comp_res = 'Faster than'
+        else:
+            comp_res = 'About the same as'
+        print(f"{comp_res} ({avg_time_rat:.2f}x) for O({cfn}) function: [{cmp_time_str}]")
+        
 
-f1 = lambda z: math.factorial(z)
-f1.__name__ = 'math.factorial'
-f2 = lambda z: em.factorial(z)
-f2.__name__ = 'rust.factorial'
+est_runtime(math.factorial, [50000, 100000, 200000, 500000], 5)
 
-comp_bench([f1, f2], 20, 10000)
+
+
+# f1 = lambda z: math.factorial(z)
+# f1.__name__ = 'math.factorial'
+# f2 = lambda z: em.factorial(z)
+# f2.__name__ = 'rust.factorial'
+
+# comp_bench([f1, f2], 20, 10000)
