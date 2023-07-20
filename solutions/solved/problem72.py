@@ -11,6 +11,12 @@ import euler_math as em
 
 def solve(debug=False):
     
-    res=None
+    res=0
+    
+    # for all denominators
+    for d in range(2, 1_000_001):
+        # number of possible fractions is equal to number of totatives, since coprimes get reduced
+        phi_d = em.totient(d)
+        res += phi_d
     
     print(f"*** Answer: {res} ***")

@@ -1,7 +1,9 @@
-use pyo3::{prelude::*, exceptions::PyTypeError, types::{PyInt, PyFloat}, pyclass::CompareOp};
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use pyo3::{prelude::*, exceptions::PyTypeError, pyclass::CompareOp};
 use num_bigint::BigUint;
 #[allow(unused)]
-use rayon;
+use rayon::prelude::*;
 
 /// A Python module implemented in Rust.
 #[pymodule]
@@ -21,10 +23,104 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Fraction>()?;
     m.add_class::<RootContFraction>()?;
     m.add_function(wrap_pyfunction!(totient, m)?)?;
-    m.add("__all__", vec!["totient", "RootContFraction", "Fraction", "Fibonacci", "pell_numbers", "get_primes", "int_sqrt", "sum_to_n", "divisors_of_n", "periodicity", "gcd", "prime_factors"])?;
-    
+    m.add_function(wrap_pyfunction!(factorial, m)?)?;
     Ok(())
 }
+
+
+#[pyfunction]
+fn factorial(num: u128) -> PyResult<BigUint> {
+    if num <= 1 {
+        return Ok(BigUint::from(1_u32));
+    }
+
+    let mut odd_terms = vec![];
+    let mut pow2_ct = 0;
+    for t in 3..=num {
+        let z = t.trailing_zeros();
+        pow2_ct += z;
+        // println!("DEBUG FACTORIAL: bin({}) has {} zeroes, leaving {}", &t, &z, t>>z);
+        odd_terms.push(BigUint::from(t >> z));
+    }
+    let mut big_2pow = BigUint::from(2_u32) << pow2_ct;
+
+    // println!("DEBUG FACTORIAL: product({:?}) * 2^{}", &odd_terms, big_2pow);
+
+    Ok(odd_terms.into_par_iter().reduce(|| BigUint::from(1_u32), |acc,x| acc*x) * big_2pow)
+
+}
+
+#[allow(unused)]
+#[pyfunction]
+fn factorial_prime_swing(num: u128) -> PyResult<u128> {
+    // via P. Luschny -- https://oeis.org/A000142/a000142.pdf
+
+    let prime_list = get_primes(num)?;
+
+    fn prime_range(start: u128, stop: u128, primes: &Vec<u128>) -> Vec<u128> {
+        primes.iter()
+            .filter(|&&p| start <= p && p < stop)
+            .cloned()
+            .collect::<Vec<u128>>()
+    }
+
+    fn swing(m: u128, primes: &Vec<u128>) -> u128 {
+        if m < 4 {return vec![1,1,1,3][m as usize];}
+
+        let mut factors = prime_range(m.div_euclid(2)+1, m+1, &primes);
+
+        let m_rt = int_sqrt(m).unwrap();
+
+        for prime in prime_range(3, m_rt+1, &primes) {
+            if prime >= m_rt+1 {
+                break;
+            }
+
+            let mut p = 1;
+            let mut q = m;
+
+            loop {
+                q /= prime;
+                if q == 0 {break;}
+                if q & 1 == 1 {
+                    p *= prime;
+                }
+            }
+            if p > 1 {
+                factors.push(p)
+            }
+        }
+
+        let mut add_factors = prime_range(m_rt+1, m.div_euclid(3)+1, &primes)
+            .iter().filter(|&&x| (m.div_euclid(x)) & 1 == 1)
+            .cloned().collect();
+        factors.append(&mut add_factors);
+        factors.iter().cloned().reduce(|acc,x| acc*x).unwrap()
+    }
+
+    fn odd_factorial(m: u128, primes: &Vec<u128>) -> u128 {
+        if m < 2 {1}
+        else {
+            odd_factorial(m.div_euclid(2).pow(2), primes)*swing(m, primes)
+        }
+    }
+
+    Ok(
+        if num < 2 {1}
+        else if num < 20 {
+            (2..=num).into_iter().reduce(|acc,x| acc*x).unwrap()
+        } else {
+            let mut big_n = num;
+            let mut bits = num;
+            while big_n != 0 {
+                bits -= big_n & 1;
+                big_n >>= 1;
+            }
+            odd_factorial(num, &prime_list) * 2_u128.pow(bits as u32)
+        }
+    )
+}
+
 
 #[pyfunction]
 fn totient(num: u128) -> PyResult<u128> {
@@ -45,7 +141,6 @@ fn totient(num: u128) -> PyResult<u128> {
             }
             result = result - result / p;
         }
-
         p += 2;
     }
 
@@ -60,20 +155,20 @@ fn totient(num: u128) -> PyResult<u128> {
 
 #[pyclass(get_all, set_all)]
 struct Fraction {
-    numerator: u128, 
-    denominator: u128
+    numerator: u32, 
+    denominator: u32
 }
 
 #[pymethods]
 impl Fraction {
     #[new]
-    fn new(numer:u128, denom:u128) -> Fraction {
+    fn new(numer:u32, denom:u32) -> Fraction {
         Fraction { numerator: numer, denominator: denom }
     }
 
     fn reduce(&mut self) -> PyResult<()> {
 
-        let div = gcd(self.numerator, self.denominator)?;
+        let div = _gcd(self.numerator, self.denominator) as u32;
         self.numerator /= div;
         self.denominator /= div;
 
@@ -85,6 +180,13 @@ impl Fraction {
     //     let other_frac = Fraction {numerator: other.extract::<u128>(), denominator: 1};
     //     Ok(self.__add__(other_frac));
     // }
+    
+    fn __hash__(&self) -> PyResult<u64> {
+        let mut hasher = DefaultHasher::new();
+        let tuple = (self.numerator, self.denominator);
+        tuple.hash(&mut hasher);
+        Ok(hasher.finish())
+    }
 
     fn __repr__(&self) -> String {
         format!("{}/{}", self.numerator, self.denominator)
@@ -150,7 +252,7 @@ impl Fraction {
         } else {
             let numer = self.numerator*other.denominator + other.numerator*self.denominator;
             let denom = self.denominator * other.denominator;
-            let div = gcd(numer, denom)?;
+            let div = _gcd(numer, denom) as u32;
             return Ok(Fraction {
                 numerator: numer/div, 
                 denominator: denom/div
@@ -167,7 +269,7 @@ impl Fraction {
         } else {
             let numer = self.numerator*other.denominator - other.numerator*self.denominator;
             let denom = self.denominator * other.denominator;
-            let div = gcd(numer, denom)?;
+            let div = _gcd(numer, denom) as u32;
             return Ok(Fraction {
                 numerator: numer/div, 
                 denominator: denom/div
@@ -179,7 +281,7 @@ impl Fraction {
     
         let numer = self.numerator*other.numerator;
         let denom = self.denominator * other.denominator;
-        let div = gcd(numer, denom)?;
+        let div = _gcd(numer, denom) as u32;
         return Ok(Fraction {
             numerator: numer/div, 
             denominator: denom/div
@@ -189,7 +291,7 @@ impl Fraction {
     fn __truediv__(&self, other: &Self) -> PyResult<Fraction> {
         let numer = self.numerator*other.denominator;
         let denom = self.denominator * other.numerator;
-        let div = gcd(numer, denom)?;
+        let div = _gcd(numer, denom) as u32;
         return Ok(Fraction {
             numerator: numer/div, 
             denominator: denom/div
@@ -303,13 +405,19 @@ fn pell_numbers(max_n: usize) -> PyResult<Vec<BigUint>> {
 
 
 #[pyfunction]
-fn gcd(mut a: u128, mut b: u128) -> PyResult<u128> {
-    while b != 0 {
-        let remainder = a % b;
-        a = b;
-        b = remainder;
+fn gcd(a: u128, b: u128) -> PyResult<u128> {
+    Ok(_gcd(a, b))
+}
+
+fn _gcd<T: Into<u128> + std::ops::Rem + std::cmp::PartialEq>(a: T, b: T) -> u128 {
+    let mut nb = b.into();
+    let mut na = a.into();
+    while nb != 0 {
+        let remainder = na % nb;
+        na = nb;
+        nb = remainder;
     }
-    Ok(a)
+    na 
 }
 
 #[pyclass(get_all)]
