@@ -17,7 +17,7 @@ $$x^2 - Dy^2 = 1$$</p>
 """
 
 import euler_math as em
-from solutions.euler_tools import frac_from_seq
+from euler_tools.math import frac_from_seq
 
 def solve(debug=False):
     res=(0,0)

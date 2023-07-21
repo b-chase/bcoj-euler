@@ -5,7 +5,7 @@
 """
 
 import euler_math as em
-from solutions.euler_tools import get_digits, digits_to_num
+from euler_tools.math import get_digits, digits_to_num
 from collections import defaultdict
 
 

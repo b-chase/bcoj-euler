@@ -19,7 +19,7 @@ $$1! + 4! + 5! = 1 + 24 + 120 = 145.$$</p>
 """
 
 import euler_math as em
-from solutions.euler_tools import get_digits
+from euler_tools.math import get_digits
 
 def solve(debug=False):
     

@@ -51,23 +51,25 @@ def est_runtime(func_of_n, range_n, rep_times=5):
             times_ns.append(elapsed_ns)
         avg_t = sum(times_ns)/len(times_ns)
         avg_times.append(avg_t)
-        print(f"fn({n}) completed on average in {avg_t/1e6:.5f} us")
+        print(f"fn({n}) completed on average in {avg_t/1e6:.5f} ms")
     comp_funcs = {
         'LogN': (lambda x: math.log(x)), 
         'N': (lambda x: x), 
         'NlogN': (lambda x: x*math.log(x)), 
+        'N^1.5': (lambda x: x**1.5),
         'N2': (lambda x: x**2)
     }
     
     rel_times = [t / avg_times[0] for t in avg_times]
     print("Time Ratios for actual function:", ', '.join([f"{x:.3f}" for x in rel_times]))
-    for cfn in ['LogN', 'N', 'NlogN', 'N2']:
+    for cfn in ['LogN', 'N', 'NlogN', 'N^1.5', 'N2']:
         fn = comp_funcs[cfn]
         y0 = fn(range_n[0])
         cmp_time_rats = [fn(x)/y0 for x in range_n]
-        cmp_time_str = ', '.join(f"{x:.3f}" for x in cmp_time_rats)
-        time_ratios = [a/b for a, b in zip(rel_times, cmp_time_rats)][1:]
-        avg_time_rat = sum(time_ratios) / len(time_ratios)
+        
+        time_ratios = [a/(b) for a, b, c in zip(rel_times, cmp_time_rats, range_n)]
+        cmp_time_str = ', '.join(f"{x:.3f}" for x in time_ratios)
+        avg_time_rat = sum(time_ratios[1:]) / (len(time_ratios)-1)
         if avg_time_rat>1.1:
             comp_res = 'Slower than'
         elif avg_time_rat < 0.9:
@@ -77,7 +79,12 @@ def est_runtime(func_of_n, range_n, rep_times=5):
         print(f"{comp_res} ({avg_time_rat:.2f}x) for O({cfn}) function: [{cmp_time_str}]")
         
 
-est_runtime(math.factorial, [50000, 100000, 200000, 500000], 5)
+from euler_tools.swing_factorial import primeswing_factorial  # noqa: E402
+
+# comp_bench([em.factorial, em.factorial_split, em.factorial_primes, primeswing_factorial], 10, 500_000)
+
+
+est_runtime(em.factorial_primes, range(50000, 500001, 75000), 5)
 
 
 

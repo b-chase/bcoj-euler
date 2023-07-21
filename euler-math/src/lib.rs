@@ -1,4 +1,6 @@
 use std::collections::hash_map::DefaultHasher;
+use std::ops::{Div, Rem, Add, Sub, Mul};
+use num_traits::{One, Zero, ToPrimitive, FromPrimitive, PrimInt};
 use std::hash::{Hash, Hasher};
 use pyo3::{prelude::*, exceptions::PyTypeError, pyclass::CompareOp};
 use num_bigint::BigUint;
@@ -24,29 +26,70 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<RootContFraction>()?;
     m.add_function(wrap_pyfunction!(totient, m)?)?;
     m.add_function(wrap_pyfunction!(factorial, m)?)?;
+    m.add_function(wrap_pyfunction!(factorial_split,m)?)?;
+    m.add_function(wrap_pyfunction!(factorial_primes,m)?)?;
     Ok(())
 }
+
+pub trait UnsignedInteger {}
+impl UnsignedInteger for usize {}
+impl UnsignedInteger for u16 {}
+impl UnsignedInteger for u32 {}
+impl UnsignedInteger for u64 {}
+impl UnsignedInteger for u128 {}
+impl UnsignedInteger for BigUint {}
 
 
 #[pyfunction]
 fn factorial(num: u128) -> PyResult<BigUint> {
+    Ok((2_u128..=num).into_par_iter().map(|x| BigUint::from(x)).product())
+}
+
+#[pyfunction]
+fn factorial_primes(num: u32) -> PyResult<BigUint> {
+    if num <= 1 {
+        return Ok(BigUint::from(1_u32));
+    } else if num < 20 {
+        return Ok(BigUint::from((1u32..=num).into_par_iter().product::<BigUint>()));
+    }
+
+    let mut res = if unum && 1 {BigUint::from(num)} else {BigUint::from(1)};
+    unum >>= 1;
+    let prime_list = _fast_primes(unum>>1);
+
+    return Ok(prime_list.into_par_iter()
+        .map(|p| {
+            let p32 = p as u32;
+            let mut p_pow = 0_u32;
+            let mut max_div = p32;
+            while max_div <= num {
+                p_pow += num.div_euclid(max_div);
+                max_div *= p32;
+            }
+            // println!("{}^{} = {}", p, p_pow, up.pow(p_pow));
+            return BigUint::from(p32).pow(p_pow);
+        }).product::<BigUint>()
+    );
+}
+
+#[pyfunction]
+fn factorial_split(num: u128) -> PyResult<BigUint> {
     if num <= 1 {
         return Ok(BigUint::from(1_u32));
     }
 
-    let mut odd_terms = vec![];
-    let mut pow2_ct = 0;
-    for t in 3..=num {
-        let z = t.trailing_zeros();
-        pow2_ct += z;
-        // println!("DEBUG FACTORIAL: bin({}) has {} zeroes, leaving {}", &t, &z, t>>z);
-        odd_terms.push(BigUint::from(t >> z));
-    }
-    let mut big_2pow = BigUint::from(2_u32) << pow2_ct;
-
-    // println!("DEBUG FACTORIAL: product({:?}) * 2^{}", &odd_terms, big_2pow);
-
-    Ok(odd_terms.into_par_iter().reduce(|| BigUint::from(1_u32), |acc,x| acc*x) * big_2pow)
+    // get the number of places, 'p', after the leading bit - 2^p < N
+    let max_pow2 = u128::BITS - num.leading_zeros() - 1;
+    let pow2_ct: u128 = (2_u32..=max_pow2)
+        .into_par_iter()
+        .map(|i| num >> i)
+        .sum();
+    
+    let odd_terms = (2..=num).into_par_iter()
+        .map(|x| BigUint::from(x >> x.trailing_zeros()))
+        .product::<BigUint>();
+    
+    Ok(odd_terms << (pow2_ct as u32))
 
 }
 
@@ -458,18 +501,26 @@ fn periodicity(seq: Vec<i32>) -> PyResult<Period> {
 
 #[pyfunction]
 fn int_sqrt(num: u128) -> PyResult<u128> {
-    if num <= 1 {
-        return Ok(num);
+    Ok(_fast_int_rt(num))
+}
+
+fn _fast_int_rt<T>(num: T) -> T 
+where
+    T: PrimInt + One
+{
+    if num <= T::one() {
+        return num;
     } else {
-        let mut high = num / 2;
-        let mut low = (high + num/high) / 2;
+        let dos = T::from(2_u32).unwrap();
+        let mut high = num / dos;
+        let mut low = (high + num/high) / dos;
 
         while low < high {
             high = low;
-            low = (high + num/high) / 2;
+            low = (high + num/high) / dos;
         }
 
-        return Ok(high);
+        return high;
     }
 
 }
@@ -481,7 +532,6 @@ fn sum_to_n(n:u128) -> PyResult<u128> {
 
 #[pyfunction]
 fn prime_factors(n: usize) -> PyResult<Vec<usize>> {
-
     if n <= 3 {
         return Ok(vec![n])
     }
@@ -492,11 +542,6 @@ fn prime_factors(n: usize) -> PyResult<Vec<usize>> {
         let Ok(x_div) = divisors_of_n(*x) else {todo!()};
         if x_div.len()==2 {
             return Some(*x);
-            // let mut x_pow = 1;
-            // while n % x.pow(x_pow) == 0 {
-            //     x_pow += 1;
-            // }
-            // return Some(x.pow(x_pow-1));
         } else {
             return None;
         }
@@ -533,23 +578,26 @@ fn divisors_of_n(n:usize) -> PyResult<Vec<usize>> {
 }
 
 #[pyfunction]
-fn get_primes(max_n: u128) -> PyResult<Vec<u128>> {
-    let mut is_prime = vec![true;1+(max_n as usize)];
+fn get_primes(max_prime: u128) -> PyResult<Vec<u128>> {
+    Ok(_fast_primes(max_prime as usize).into_par_iter().map(|x| x as u128).collect())
+}
 
-    let max_div = int_sqrt(max_n)?+1;
+fn _fast_primes(max_n: usize) -> Vec<usize> {
+    let mut sieve = vec![true;1+(max_n)];
 
-    for fctr in 2..=(max_div as usize) {
-        if is_prime[fctr]  {
-            is_prime.iter_mut().step_by(fctr).skip(2)
+    let max_div = _fast_int_rt(max_n);
+
+    for fctr in 2..=(max_div) {
+        if sieve[fctr]  {
+            sieve.iter_mut().step_by(fctr).skip(2)
                 .for_each(|x| *x = false);
         }
     }
     
-    Ok(
-        is_prime.into_iter().enumerate().skip(2)
-            .filter_map(|(i, x)| if x {Some(i as u128)} else {None})
-            .collect::<Vec<u128>>()
-    )
+    sieve.into_iter().enumerate().skip(2)
+        .filter_map(|(i, x)| if x {Some(i)} else {None})
+        .collect::<Vec<usize>>()
+    
 }
 
 #[pyclass(get_all)]

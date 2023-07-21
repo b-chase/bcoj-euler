@@ -23,7 +23,7 @@
 """
 
 import euler_math as em
-from solutions.euler_tools import permute_down
+from euler_tools.math import permute_down
 
 def solve(debug=False):
     

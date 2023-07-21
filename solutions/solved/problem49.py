@@ -5,7 +5,7 @@
 """
 
 import euler_math as em
-from solutions.euler_tools import permute_down
+from euler_tools.math import permute_down
 
 def solve(debug=False):
     plist = [x for x in em.get_primes(10000) if x > 1000]

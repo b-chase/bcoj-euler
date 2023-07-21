@@ -4,7 +4,7 @@
 """
 
 import euler_math as em
-from solutions.euler_tools import digits_to_num, get_digits
+from euler_tools.math import digits_to_num, get_digits
 
 def solve(debug=False):
     
