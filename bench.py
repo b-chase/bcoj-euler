@@ -80,11 +80,12 @@ def est_runtime(func_of_n, range_n, rep_times=5):
         
 
 from euler_tools.swing_factorial import primeswing_factorial  # noqa: E402
+from euler_tools.factorial import pyfact, prime_fact, even_odd_fact, twobit_fact
 
-# comp_bench([em.factorial, em.factorial_split, em.factorial_primes, primeswing_factorial], 10, 500_000)
+comp_bench([prime_fact, even_odd_fact, twobit_fact, primeswing_factorial], 10, 20_000)
 
 
-est_runtime(em.factorial_primes, range(50000, 500001, 75000), 5)
+# est_runtime(em.factorial_primes, range(50000, 500001, 75000), 5)
 
 
 
