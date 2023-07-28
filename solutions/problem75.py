@@ -20,36 +20,47 @@ from collections import Counter
 
 
 def solve(debug=False):
-    max_perimeter = 1_500_000
+    max_perimeter = 1_500_00
 
     # max_perimeter = 130
+    sqrts = dict()
+    squares = []
 
-    squares = {x*x:x for x in range(max_perimeter//2)}
+    for x in range(0, max_perimeter//2 + 1):
+        x2 = x * x
+        sqrts[x2] = x
+        squares.append(x2)
 
-    seen_triangles = set()
+    max_c = 1+max_perimeter//2
     triples = Counter()
+    
+    def count_triples():
+        return sum(ct for _,ct in triples.items() if ct == 1)
 
-    for b in range(2, max_perimeter//2):
-        if debug and b%1000==0:
-            print(b)
-        min_a = em.int_sqrt(2*b+1)
-        for a in range(min_a, b):
-            couplet = (a,b)
-            if couplet in seen_triangles:
-                continue
-            c2 = a*a + b*b
-            if c2 in squares:
-                c = squares[c2]
-                # if debug:
-                #     print(f"{a}^2 + {b}^2 = {c}^2")
-                perim = a+b+c
-                i = 1
-                while perim*i < max_perimeter:
-                    triples[perim*i] += 1
-                    new_couplet = (a*i, b*i)
-                    seen_triangles.add(new_couplet)
-                    i += 1
+    min_a = 2
+    b = 1
+    for b2 in squares[2:]:
+        b += 1
+        min_a2 = 2*b+1
+
+        while squares[min_a] < min_a2:
+            min_a += 1
         
+        a = min_a-1
+        for a2 in squares[min_a:]:
+            a += 1
+            c2 = b2 + a2
+            
+            if c2 in sqrts:
+                c = sqrts[c2]
+                perim = a + b + c
+                triples[perim] += 1
+
+        if debug and b % 10000 == 0:
+            print(f"B={b}, min_A={min_a}  >>  Triples up to {count_triples()}")
+        
+
+    
     res = sum(x for k,x in triples.items() if x==1 and k <= max_perimeter)
     
     if debug:
