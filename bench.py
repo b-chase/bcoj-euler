@@ -1,4 +1,5 @@
 import euler_math as em
+from euler_tools.math import get_digits
 from time import perf_counter_ns
 import math  # noqa: E402
 
@@ -79,10 +80,31 @@ def est_runtime(func_of_n, range_n, rep_times=5):
         print(f"{comp_res} ({avg_time_rat:.2f}x) for O({cfn}) function: [{cmp_time_str}]")
         
 
+
 from euler_tools.swing_factorial import primeswing_factorial  # noqa: E402
 from euler_tools.factorial import pyfact, prime_fact, even_odd_fact, twobit_fact
 
-comp_bench([prime_fact, even_odd_fact, twobit_fact, primeswing_factorial], 10, 20_000)
+def sci_not(x:int, prec=8):
+    if x != x//1:
+        raise ValueError(f"Expected integer for scientific notation, got float: {x}")
+    sx = get_digits(x)
+    decimals = sx[1:prec]
+
+    return f"{sx[0]}.{''.join(str(d) for d in decimals[1:])} E+{len(sx)-1}"
+
+# for x in range(1000, 5000, 1000):
+#     reg_fac = math.factorial(x)
+#     psw_fac = primeswing_factorial(x)
+#     rps_fac = em.pswing_factorial(x)
+#     rs_fac = em.factorial_split(x)
+
+#     if reg_fac < 1e10:
+#         print(f"{x}: {reg_fac}, {psw_fac}, {rps_fac}, {rs_fac}")
+#     else:
+#         print(f"{x}: {sci_not(reg_fac)}, {sci_not(psw_fac)}, {sci_not(rps_fac)}, {sci_not(rs_fac)}")
+#     assert reg_fac==psw_fac==rps_fac==rs_fac
+
+comp_bench([primeswing_factorial, em.pswing_factorial, em.factorial_split], 10, 1_000_000)
 
 
 # est_runtime(em.factorial_primes, range(50000, 500001, 75000), 5)

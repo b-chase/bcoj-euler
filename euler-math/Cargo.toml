@@ -13,3 +13,4 @@ pyo3 = { version = "0.19.0", features = ["num-bigint"]}
 rayon = "1.7.0"
 num-bigint = "0.4"
 num-traits = "0.2.16"
+factorial = "0.3.0"

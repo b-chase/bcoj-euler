@@ -1,10 +1,10 @@
 use std::collections::hash_map::DefaultHasher;
-use std::ops::{Div, Rem, Add, Sub, Mul};
+#[allow(unused)]
 use num_traits::{One, Zero, ToPrimitive, FromPrimitive, PrimInt};
 use std::hash::{Hash, Hasher};
 use pyo3::{prelude::*, exceptions::PyTypeError, pyclass::CompareOp};
-use num_bigint::BigUint;
-#[allow(unused)]
+use num_bigint::*;
+use factorial::Factorial;
 use rayon::prelude::*;
 
 /// A Python module implemented in Rust.
@@ -25,9 +25,8 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Fraction>()?;
     m.add_class::<RootContFraction>()?;
     m.add_function(wrap_pyfunction!(totient, m)?)?;
-    m.add_function(wrap_pyfunction!(factorial, m)?)?;
+    m.add_function(wrap_pyfunction!(pswing_factorial, m)?)?;
     m.add_function(wrap_pyfunction!(factorial_split,m)?)?;
-    m.add_function(wrap_pyfunction!(factorial_primes,m)?)?;
     Ok(())
 }
 
@@ -41,35 +40,8 @@ impl UnsignedInteger for BigUint {}
 
 
 #[pyfunction]
-fn factorial(num: u128) -> PyResult<BigUint> {
-    Ok((2_u128..=num).into_par_iter().map(|x| BigUint::from(x)).product())
-}
-
-#[pyfunction]
-fn factorial_primes(num: u32) -> PyResult<BigUint> {
-    if num <= 1 {
-        return Ok(BigUint::from(1_u32));
-    } else if num < 20 {
-        return Ok(BigUint::from((1u32..=num).into_par_iter().product::<BigUint>()));
-    }
-
-    let mut res = if unum && 1 {BigUint::from(num)} else {BigUint::from(1)};
-    unum >>= 1;
-    let prime_list = _fast_primes(unum>>1);
-
-    return Ok(prime_list.into_par_iter()
-        .map(|p| {
-            let p32 = p as u32;
-            let mut p_pow = 0_u32;
-            let mut max_div = p32;
-            while max_div <= num {
-                p_pow += num.div_euclid(max_div);
-                max_div *= p32;
-            }
-            // println!("{}^{} = {}", p, p_pow, up.pow(p_pow));
-            return BigUint::from(p32).pow(p_pow);
-        }).product::<BigUint>()
-    );
+fn pswing_factorial(num: BigUint) -> PyResult<BigUint> {
+    Ok(num.factorial())
 }
 
 #[pyfunction]
@@ -79,89 +51,16 @@ fn factorial_split(num: u128) -> PyResult<BigUint> {
     }
 
     // get the number of places, 'p', after the leading bit - 2^p < N
-    let max_pow2 = u128::BITS - num.leading_zeros() - 1;
-    let pow2_ct: u128 = (2_u32..=max_pow2)
-        .into_par_iter()
-        .map(|i| num >> i)
-        .sum();
+    let m = num.div_euclid(2);
+    let even_product = factorial_split(m)?;
     
-    let odd_terms = (2..=num).into_par_iter()
+    let odd_product = (1..=num).step_by(2).into_iter()
+        .par_bridge()
         .map(|x| BigUint::from(x >> x.trailing_zeros()))
         .product::<BigUint>();
     
-    Ok(odd_terms << (pow2_ct as u32))
+    Ok((odd_product * even_product) << m)
 
-}
-
-#[allow(unused)]
-#[pyfunction]
-fn factorial_prime_swing(num: u128) -> PyResult<u128> {
-    // via P. Luschny -- https://oeis.org/A000142/a000142.pdf
-
-    let prime_list = get_primes(num)?;
-
-    fn prime_range(start: u128, stop: u128, primes: &Vec<u128>) -> Vec<u128> {
-        primes.iter()
-            .filter(|&&p| start <= p && p < stop)
-            .cloned()
-            .collect::<Vec<u128>>()
-    }
-
-    fn swing(m: u128, primes: &Vec<u128>) -> u128 {
-        if m < 4 {return vec![1,1,1,3][m as usize];}
-
-        let mut factors = prime_range(m.div_euclid(2)+1, m+1, &primes);
-
-        let m_rt = int_sqrt(m).unwrap();
-
-        for prime in prime_range(3, m_rt+1, &primes) {
-            if prime >= m_rt+1 {
-                break;
-            }
-
-            let mut p = 1;
-            let mut q = m;
-
-            loop {
-                q /= prime;
-                if q == 0 {break;}
-                if q & 1 == 1 {
-                    p *= prime;
-                }
-            }
-            if p > 1 {
-                factors.push(p)
-            }
-        }
-
-        let mut add_factors = prime_range(m_rt+1, m.div_euclid(3)+1, &primes)
-            .iter().filter(|&&x| (m.div_euclid(x)) & 1 == 1)
-            .cloned().collect();
-        factors.append(&mut add_factors);
-        factors.iter().cloned().reduce(|acc,x| acc*x).unwrap()
-    }
-
-    fn odd_factorial(m: u128, primes: &Vec<u128>) -> u128 {
-        if m < 2 {1}
-        else {
-            odd_factorial(m.div_euclid(2).pow(2), primes)*swing(m, primes)
-        }
-    }
-
-    Ok(
-        if num < 2 {1}
-        else if num < 20 {
-            (2..=num).into_iter().reduce(|acc,x| acc*x).unwrap()
-        } else {
-            let mut big_n = num;
-            let mut bits = num;
-            while big_n != 0 {
-                bits -= big_n & 1;
-                big_n >>= 1;
-            }
-            odd_factorial(num, &prime_list) * 2_u128.pow(bits as u32)
-        }
-    )
 }
 
 
