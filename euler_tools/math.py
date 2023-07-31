@@ -3,6 +3,30 @@
 import euler_math as em
 import math
 
+
+def ways_2_sum(num: int, max_term = None, saved_sums = {}) -> int:
+        if not max_term:
+            max_term = num - 1
+        
+        saved = saved_sums.get((num, max_term))
+        if saved:
+            ways_ct = saved
+        elif max_term==1:
+            ways_ct = 1
+        else:
+            ways_ct = 0
+            for n in range(1, max_term+1):
+                rem = num - n
+                if rem > 0:    
+                    rem_max_term = min(rem, n)
+                    ways_ct += ways_2_sum(rem, rem_max_term, saved_sums)
+                else:
+                    ways_ct += 1
+        
+        saved_sums[(num, max_term)] = ways_ct
+        return ways_ct
+
+
 def frac_from_seq(seq: list[int]) -> tuple[int]:
 
     numer, denom = seq[-1], 1
