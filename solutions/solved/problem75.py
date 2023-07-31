@@ -16,54 +16,53 @@
 """
 
 import euler_math as em
-from collections import Counter
+from collections import defaultdict
 
 
 def solve(debug=False):
-    max_perimeter = 1_500_00
-
+    max_perimeter = 1_500_000
     # max_perimeter = 130
-    sqrts = dict()
-    squares = []
 
-    for x in range(0, max_perimeter//2 + 1):
-        x2 = x * x
-        sqrts[x2] = x
-        squares.append(x2)
-
-    max_c = 1+max_perimeter//2
-    triples = Counter()
+    couplets = set()
+    triples = defaultdict(lambda: 0)
     
-    def count_triples():
-        return sum(ct for _,ct in triples.items() if ct == 1)
+    def triple_counts(exact_count=1):
+        return sum(1 for _, x in triples.items() if x==1)
 
-    min_a = 2
-    b = 1
-    for b2 in squares[2:]:
-        b += 1
-        min_a2 = 2*b+1
+    max_c = (max_perimeter//2) + (max_perimeter & 1)
+    # max_b = max_c - 1
+    max_m = em.int_sqrt(max_c)+1
 
-        while squares[min_a] < min_a2:
-            min_a += 1
-        
-        a = min_a-1
-        for a2 in squares[min_a:]:
-            a += 1
-            c2 = b2 + a2
+    for m in range(2,max_m):
+        m2 = m*m
+        for n in range(1, m):
+            n2 = n*n
+
+            a = m2 - n2
+            b = 2*m*n
+            a, b = min(a,b), max(a,b)
+            c = m2 + n2
+
+            p = a+b+c
             
-            if c2 in sqrts:
-                c = sqrts[c2]
-                perim = a + b + c
-                triples[perim] += 1
+            for k in range(1, 1+max_perimeter//p):
+                ma, mb, mc = a*k, b*k, c*k
+                mp = ma+mb+mc
+                if (ma,mb) not in couplets:
+                    triples[mp] += 1
+                    couplets.add((ma,mb))
+                #     if debug:
+                #         print(f"Found triangle {ma} + {mb} + {mc} = {mp}")
+                # elif debug:
+                #     print(f"Couplet already used: {ma} + {mb} + {mc} = {mp}")
+            
+        if debug and m % 100 == 0:
+            print(f"Up to m={m}, triple count: {triple_counts(1)}")
 
-        if debug and b % 10000 == 0:
-            print(f"B={b}, min_A={min_a}  >>  Triples up to {count_triples()}")
-        
-
-    
-    res = sum(x for k,x in triples.items() if x==1 and k <= max_perimeter)
+    res = triple_counts(1)
     
     if debug:
         for k,x in triples.items():
-            print(f"Triangles with perimeter {k}: {x}")
+            if x == 1:
+                print(f"Triangles with perimeter {k}: {x}")
     print(f"*** Answer: {res} ***")
