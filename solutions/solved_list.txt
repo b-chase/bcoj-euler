@@ -73,3 +73,4 @@ problem_number, time_solved_us, solved_timestamp
 72.0,328000.0,Wed Jul 19 10:58:06 2023
 73.0,2000000.0,Wed Jul 19 11:43:46 2023
 74.0,1125000.0,Wed Jul 19 14:43:48 2023
+75.0,2000000.0,Sun Jul 30 21:43:15 2023
