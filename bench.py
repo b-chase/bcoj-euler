@@ -81,9 +81,6 @@ def est_runtime(func_of_n, range_n, rep_times=5):
         
 
 
-from euler_tools.swing_factorial import primeswing_factorial  # noqa: E402
-from euler_tools.factorial import pyfact, prime_fact, even_odd_fact, twobit_fact
-
 def sci_not(x:int, prec=8):
     if x != x//1:
         raise ValueError(f"Expected integer for scientific notation, got float: {x}")
@@ -92,28 +89,14 @@ def sci_not(x:int, prec=8):
 
     return f"{sx[0]}.{''.join(str(d) for d in decimals[1:])} E+{len(sx)-1}"
 
-# for x in range(1000, 5000, 1000):
-#     reg_fac = math.factorial(x)
-#     psw_fac = primeswing_factorial(x)
-#     rps_fac = em.pswing_factorial(x)
-#     rs_fac = em.factorial_split(x)
 
-#     if reg_fac < 1e10:
-#         print(f"{x}: {reg_fac}, {psw_fac}, {rps_fac}, {rs_fac}")
-#     else:
-#         print(f"{x}: {sci_not(reg_fac)}, {sci_not(psw_fac)}, {sci_not(rps_fac)}, {sci_not(rs_fac)}")
-#     assert reg_fac==psw_fac==rps_fac==rs_fac
+part_calc = em.PartitionsCalculator()
+# print(part_calc.saved_partitions)
+# print(part_calc.saved_pentagonals)
+for z in range(0, 50):
+    part_z = bench_ns(part_calc.partitions, 5, z)
+    # print(part_calc.saved_partitions)
+    
+    print(f"p({z}) = {part_z}\n")
 
-comp_bench([primeswing_factorial, em.pswing_factorial, em.factorial_split], 10, 1_000_000)
-
-
-# est_runtime(em.factorial_primes, range(50000, 500001, 75000), 5)
-
-
-
-# f1 = lambda z: math.factorial(z)
-# f1.__name__ = 'math.factorial'
-# f2 = lambda z: em.factorial(z)
-# f2.__name__ = 'rust.factorial'
-
-# comp_bench([f1, f2], 20, 10000)
+print(len(part_calc.saved_pentagonals), "pent numbers saved")

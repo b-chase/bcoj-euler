@@ -4,7 +4,6 @@ use num_traits::{One, Zero, ToPrimitive, FromPrimitive, PrimInt};
 use std::hash::{Hash, Hasher};
 use pyo3::{prelude::*, exceptions::PyTypeError, pyclass::CompareOp};
 use num_bigint::*;
-use factorial::Factorial;
 use rayon::prelude::*;
 
 /// A Python module implemented in Rust.
@@ -25,8 +24,9 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Fraction>()?;
     m.add_class::<RootContFraction>()?;
     m.add_function(wrap_pyfunction!(totient, m)?)?;
-    m.add_function(wrap_pyfunction!(pswing_factorial, m)?)?;
+    // m.add_function(wrap_pyfunction!(pswing_factorial, m)?)?;
     m.add_function(wrap_pyfunction!(factorial_split,m)?)?;
+    m.add_class::<PartitionsCalculator>()?;
     Ok(())
 }
 
@@ -39,10 +39,74 @@ impl UnsignedInteger for u128 {}
 impl UnsignedInteger for BigUint {}
 
 
-#[pyfunction]
-fn pswing_factorial(num: BigUint) -> PyResult<BigUint> {
-    Ok(num.factorial())
+#[pyclass(get_all, set_all)]
+struct PartitionsCalculator {
+    saved_partitions: Vec<BigInt>, 
+    saved_pentagonals: Vec<usize>
 }
+
+#[pymethods]
+impl PartitionsCalculator {
+    #[new]
+    fn new() -> Self {
+        let mut gen_pent = vec![0];
+        // add first 20 terms to pentagonals for a start
+        for n in 1..=5_usize {
+            let pn_plus = (3*n*n - n).div_euclid(2);
+            let pn_minus = (3*n*n + n).div_euclid(2);
+            gen_pent.push(pn_plus);
+            gen_pent.push(pn_minus);
+        }
+        PartitionsCalculator { saved_partitions: vec![BigInt::from(1), BigInt::from(1), BigInt::from(2)], saved_pentagonals: gen_pent }
+    }
+
+    fn partitions(&mut self, num: u128) -> PyResult<BigInt> {
+        let usize_num = num as usize;
+        if usize_num < self.saved_partitions.len() {
+            return Ok(self.saved_partitions[usize_num].clone());
+        }
+        
+        let mut i = self.saved_pentagonals.len().div_euclid(2);
+        while usize_num >= 2*i {
+            i += 1;
+            let i2_by_3 = 3*i*i;  // not sure how much faster this will be, but might as well
+            self.saved_pentagonals.push((i2_by_3 - i).div_euclid(2));
+            self.saved_pentagonals.push((i2_by_3 + i).div_euclid(2));
+        }
+        
+        let max_prev = self.saved_partitions.len();
+        // ensure that all pengagonal numbers up to 
+        for k in max_prev..usize_num {
+            let _tmp = self.partitions(k as u128);
+        }
+        
+        let total: BigInt  = (1..usize_num).into_par_iter()
+            .filter_map(|n| {
+                let pn = self.saved_pentagonals[n];
+                if pn <= usize_num {
+                    let index = usize_num - pn;
+                    // Every two terms flip to positive or negative
+                    let part = &self.saved_partitions[index] * (if ((n-1) & 2) < 2 {1} else {-1});
+                    // println!("Adding P({}={}-{}) = {:?}", index, usize_num, pn, part);
+                    Some(part)
+                } else {
+                    None
+                }
+            }).sum();
+        
+        self.saved_partitions.push(total.clone());
+
+        Ok(total)
+
+    }
+}
+
+
+
+// #[pyfunction]
+// fn pswing_factorial(num: BigUint) -> PyResult<BigUint> {
+//     Ok(num.factorial())
+// }
 
 #[pyfunction]
 fn factorial_split(num: u128) -> PyResult<BigUint> {

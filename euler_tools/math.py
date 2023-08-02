@@ -4,7 +4,8 @@ import euler_math as em
 import math
 
 
-def ways_2_sum(num: int, max_term = None, saved_sums = {}) -> int:
+# formerly "ways_2_sum"
+def partitions(num: int, max_term = None, saved_sums = {}) -> int:
         if not max_term:
             max_term = num - 1
         
@@ -19,7 +20,10 @@ def ways_2_sum(num: int, max_term = None, saved_sums = {}) -> int:
                 rem = num - n
                 if rem > 0:    
                     rem_max_term = min(rem, n)
-                    ways_ct += ways_2_sum(rem, rem_max_term, saved_sums)
+                    new_ways = partitions(rem, rem_max_term, saved_sums)
+                    saved_sums[(rem, rem_max_term)] = new_ways
+                    ways_ct += new_ways
+                    
                 else:
                     ways_ct += 1
         
