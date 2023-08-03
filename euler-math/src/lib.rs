@@ -27,6 +27,7 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     // m.add_function(wrap_pyfunction!(pswing_factorial, m)?)?;
     m.add_function(wrap_pyfunction!(factorial_split,m)?)?;
     m.add_class::<PartitionsCalculator>()?;
+    m.add_function(wrap_pyfunction!(long_divide,m)?)?;
     Ok(())
 }
 
@@ -37,6 +38,25 @@ impl UnsignedInteger for u32 {}
 impl UnsignedInteger for u64 {}
 impl UnsignedInteger for u128 {}
 impl UnsignedInteger for BigUint {}
+
+
+#[pyfunction]
+fn long_divide(a:BigUint, b:BigUint, max_terms: Option<usize>) -> PyResult<Vec<BigUint>> {
+
+    let mut res = vec![a.clone() / b.clone()];
+
+    let mut remainder = BigUint::from(10_u32) * (a % b.clone());
+
+    for _ in 0..max_terms.unwrap() {
+        if remainder == BigUint::from(0_u32) {
+            break
+        }
+        res.push(remainder.clone() / b.clone());
+        remainder = BigUint::from(10_u32) * (remainder % b.clone());
+    }
+
+    Ok(res)
+}
 
 
 #[pyclass(get_all, set_all)]
