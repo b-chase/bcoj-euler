@@ -15,7 +15,7 @@ def solve(debug=False):
     
     res=None
     
-    with open('solutions/problem79_keylog.txt') as keylog:
+    with open('solutions/problem79.txt') as keylog:
         keys = [x.strip() for x in keylog.readlines()]
     
     def key_match(full_code:str, key:str) -> bool:

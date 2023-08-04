@@ -35,7 +35,7 @@ if not is_test:
     is_correct = input('Solution correct? (y/n) ').lower() == 'y'
 
     if is_correct:
-        os.system(f'py -m meta.save {pnum} {elapsed/1e3}')
+        os.system(f'py -m meta.save {pnum} --microseconds {elapsed/1e3}')
         os.system('py -m meta.next')
     
 
