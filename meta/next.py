@@ -16,9 +16,9 @@ def load_problem(pnum:int):
     problem_url = f"https://projecteuler.net/minimal={pnum}"
     problem_html = requests.get(url=problem_url).content.decode()
     try:
-        prob_text_file = re.search(r'href\=\"(.+?txt)', problem_html).groups()[0]
+        prob_text_file = re.search(r'href\=\"(.+?txt)', problem_html)
         if prob_text_file:
-            file_link = f"https://projecteuler.net/{prob_text_file}"
+            file_link = f"https://projecteuler.net/{prob_text_file.groups()[0]}"
             print(file_link)
             file_content = requests.get(file_link).content.decode()
             with open(f"solutions/problem{pnum}.txt", "x") as t:

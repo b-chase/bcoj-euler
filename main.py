@@ -36,6 +36,6 @@ if not is_test:
 
     if is_correct:
         os.system(f'py -m meta.save {pnum} --microseconds {elapsed/1e3}')
-        os.system('py -m meta.next')
+        os.system(f'py -m meta.next -p {pnum+1}')
     
 
