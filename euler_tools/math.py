@@ -2,6 +2,19 @@
 
 import euler_math as em
 import math
+from collections import Counter
+
+
+def roll_dice_combos(*args):
+    # returns a counter with the number of ways for each possible combination of the given dice
+    
+    final_ways = [0]
+    for d_ct in args:
+        added_ways = []
+        for i in range(1, d_ct+1):
+            added_ways.extend(i+way_ct for way_ct in final_ways)
+        final_ways = added_ways
+    return Counter(final_ways)
 
 
 # formerly "ways_2_sum"
