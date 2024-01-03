@@ -32,18 +32,21 @@ from euler_tools.math import roll_dice_combos
 import euler_math as em
 import numpy as np # will need to do some matrix math!
 
+
 def solve(debug=False):
 
     spaces_list = ['GO', 'A1', 'CC1', 'A2', 'T1', 'R1', 'B1', 'CH1', 'B2', 'B3', 
                    'JAIL', 'C1', 'U1', 'C2', 'C3', 'R2', 'D1', 'CC2', 'D2', 'D3', 
                    'FP', 'E1', 'CH2', 'E2', 'E3', 'R3', 'F1', 'F2', 'U2', 'F3', 
                    'G2J', 'G1', 'G2', 'CC3', 'G3', 'R4', 'CH3', 'H1', 'T2', 'H2']
-    chance_cards = ['GO', 'JAIL', 'C1', 'E3', 'H2', 'R1', 'rr', 'uu', 'back3'] + [None]*6
+    chance_cards = ['GO', 'JAIL', 'C1', 'E3', 'H2', 'R1', 'rr', 'rr', 'uu', 'back3'] + [None]*6
     cc_cards = ['GO', 'JAIL'] + [None]*14
 
 
-    die_roll_ways = roll_dice_combos(4, 4)
+    die_roll_ways = roll_dice_combos(2, 4, debug)
     print(die_roll_ways)
+    print(die_roll_ways.total())
+
 
 
     res=None
