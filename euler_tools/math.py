@@ -5,16 +5,27 @@ import math
 from collections import Counter
 
 
-def roll_dice_combos(*args):
-    # returns a counter with the number of ways for each possible combination of the given dice
-    
-    final_ways = [0]
-    for d_ct in args:
-        added_ways = []
-        for i in range(1, d_ct+1):
-            added_ways.extend(i+way_ct for way_ct in final_ways)
-        final_ways = added_ways
-    return Counter(final_ways)
+def roll_dice_combos(max_roll, dice_count, debug=False) -> Counter:
+    # returns a counter with the number of ways for each tuple combination
+    combo_list = Counter()
+    if dice_count == 1:
+        combo_list = Counter(list((x,) for x in range(1, max_roll+1)))
+    else:
+        for x in range(1, max_roll+1):            
+            # get list of possible combos for remaining dice, with values up to and including rolled value
+            sub_combo_list = roll_dice_combos(x, dice_count-1, debug)
+            for combo, count in sub_combo_list.items():
+                # for each sub-combo, prepend the rolled value and add count to overall total
+                mult = 1 if combo[0]==x else count
+                combo_list[(x,)+combo] += mult*dice_count
+            
+            # degenerate case will always have value of '1'
+            combo_list[tuple([x]*dice_count)] = 1
+
+    if debug:
+        print(max_roll, dice_count, combo_list)
+    return combo_list
+
 
 
 # formerly "ways_2_sum"
