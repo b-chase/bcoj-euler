@@ -39,15 +39,20 @@ def solve(debug=False):
                    'JAIL', 'C1', 'U1', 'C2', 'C3', 'R2', 'D1', 'CC2', 'D2', 'D3', 
                    'FP', 'E1', 'CH2', 'E2', 'E3', 'R3', 'F1', 'F2', 'U2', 'F3', 
                    'G2J', 'G1', 'G2', 'CC3', 'G3', 'R4', 'CH3', 'H1', 'T2', 'H2']
+    
+    
     chance_cards = ['GO', 'JAIL', 'C1', 'E3', 'H2', 'R1', 'rr', 'rr', 'uu', 'back3'] + [None]*6
     cc_cards = ['GO', 'JAIL'] + [None]*14
 
 
-    die_roll_ways = roll_dice_combos(2, 4, debug)
-    print(die_roll_ways)
-    print(die_roll_ways.total())
-
-
+    # some dice calculations
+    die_roll_ways = roll_dice_combos(6, 2)
+    
+    movement_freqs = dict()
+    for rolls, cts in die_roll_ways.items():
+        movement = sum(rolls)
+        movement_freqs[movement] = cts + movement_freqs.get(movement, 0)
+    
 
     res=None
     
