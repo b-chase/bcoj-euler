@@ -16,8 +16,8 @@ def roll_dice_combos(max_roll, dice_count, debug=False) -> Counter:
             sub_combo_list = roll_dice_combos(x, dice_count-1, debug)
             for combo, count in sub_combo_list.items():
                 # for each sub-combo, prepend the rolled value and add count to overall total
-                mult = 1 if combo[0]==x else count
-                combo_list[(x,)+combo] += mult*dice_count
+                # mult = count - sum(1 for y in combo if y == x)
+                combo_list[(x,)+combo] += dice_count*count // (1+sum(1 for y in combo if y == x))
             
             # degenerate case will always have value of '1'
             combo_list[tuple([x]*dice_count)] = 1
