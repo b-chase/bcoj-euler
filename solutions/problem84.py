@@ -40,20 +40,80 @@ def solve(debug=False):
                    'FP', 'E1', 'CH2', 'E2', 'E3', 'R3', 'F1', 'F2', 'U2', 'F3', 
                    'G2J', 'G1', 'G2', 'CC3', 'G3', 'R4', 'CH3', 'H1', 'T2', 'H2']
     
+    jail_index = spaces_list.index('JAIL')
     
     chance_cards = ['GO', 'JAIL', 'C1', 'E3', 'H2', 'R1', 'rr', 'rr', 'uu', 'back3'] + [None]*6
     cc_cards = ['GO', 'JAIL'] + [None]*14
 
-
+    def get_next_rr_index(space_index:int) -> int:
+        # takes a space index and returns the next railroad from available spaces
+        for space_name in spaces_list[space_index+1:]:
+            if space_name.startswith('R'):
+                return spaces_list.index(space_name)
+        return spaces_list.index('R1')
+    
+    def get_next_uu_index(space_index:int) -> int:
+        # takes a space index and returns the next utility from available spaces
+        for space_name in spaces_list[space_index+1:]:
+            if space_name.startswith('U'):
+                return spaces_list.index(space_name)
+        return spaces_list.index('U1')    
+    
     # some dice calculations
     die_roll_ways = roll_dice_combos(6, 2)
+    print(die_roll_ways)
     
-    movement_freqs = dict()
-    for rolls, cts in die_roll_ways.items():
-        movement = sum(rolls)
-        movement_freqs[movement] = cts + movement_freqs.get(movement, 0)
+    # movement_freqs = dict()
+    # for rolls, cts in die_roll_ways.items():
+    #     movement = sum(rolls)
+    #     movement_freqs[movement] = cts + movement_freqs.get(movement, 0)
     
-
+    # get dimensions of markov matrix, 40 for the available spaces, tripled to account for potentially rolling doubles
+    markov_dim = (3*len(spaces_list), 3*len(spaces_list))
+    
+    # create frequency matrix
+    frequency_matrix = np.zeros(markov_dim)
+    
+    # populate matrix with number of ways each square can be reached from each
+    for doubles_ct in range(3):
+        for i in range(40):
+            # iterate through list of die rolls
+            for roll, way_ct in die_roll_ways.items():
+                # get next space index
+                next_index = (i+sum(roll)) % 40
+                
+                add_freq_ways = way_ct * 16
+                
+                # check if space is a community chest card
+                if spaces_list[i].startswith('CC'):
+                    for destination in cc_cards:
+                        if destination:
+                            next_index = spaces_list.index(destination)
+                        
+                elif spaces_list[i].startswith('CH'):
+                    for destination in chance_cards:
+                        if destination:
+                            if destination == 'rr':
+                                next_index = get_next_rr_index(next_index)
+                            elif destination == 'uu':
+                                next_index = get_next_uu_index(next_index)
+                            else:
+                                next_index = spaces_list.index(destination)
+                
+                
+                
+                # check if doubles were rolled
+                if roll[0]==roll[1]:
+                    if doubles_ct==2:
+                        next_index = jail_index
+                    else:
+                        next_index = next_index + 40*(1+doubles_ct)
+                    assert next_index < 3*40
+                
+                # increment frequency matrix
+                frequency_matrix[i, next_index] += way_ct
+                
+    
     res=None
     
     print(f'*** Answer: {res} ***')
