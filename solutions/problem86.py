@@ -9,9 +9,56 @@
 """
 
 import euler_math as em
+from math import sqrt
 
 def solve(debug=False):
     
-    res=None
+    
+    
+    # largest side of cuboid allowed
+    max_m = 2000
+    squares = [i**2 for i in range(0, 2*max_m+2)]
+    sq_set = set(squares)
+    
+    # largest perimeter of produced pythagorean triangle
+    max_p = 10 * max_m
+    max_c = max_m // 2  # true limit - triangle side can't be longer than other two combined
+    max_a = max_m // 4  # true limit - otherwise side 'b' is shorter than side 'a'
+    
+    max_c2 = squares[-1]
+    
+    triples = {}
+    # build list of integer triples
+    for a in range(1, max_a):
+        a2 = squares[a]
+        max_b = (max_p - a) // 2 + 1  # should be larger than side 'a'
+        for b in range(a+1, max_b):
+            b2 = squares[b]
+            # max_c = 1000 - a - b
+            c2 = a2 + b2
+
+            if c2 > max_c2:
+                break
+
+            if c2 in sq_set:
+                c = sqrt(c2)
+                triples[(a,b)] = c
+    
+    # now we've identified triples, we can determine cuboids
+    triples_counter = [0]*(max_m+1)
+    for i in range(1, max_m+1):
+        for j in range(1, i+1):
+            for k in range(1, j+1):
+                a, b = i, j+k
+                a, b = min(a,b), max(a,b)
+                if (a,b) in triples:
+                    c = triples[(a,b)]
+                    triples_counter[i] += 1
+                    # print(i, j, k)
+
+        if triples_counter[i] > 10:
+            print(f"At max_m of {i} we have {triples_counter[i]} distinct cuboids")
+    
+    res = None  
     
     print(f'*** Answer: {res} ***')
