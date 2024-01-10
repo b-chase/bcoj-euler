@@ -494,7 +494,7 @@ where
     if num <= T::one() {
         return num;
     } else {
-        let dos = T::from(2_u32).unwrap();
+        let dos = T::from(2_u64).unwrap();
         let mut high = num / dos;
         let mut low = (high + num/high) / dos;
 

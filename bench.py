@@ -2,6 +2,7 @@ import euler_math as em
 from euler_tools.math import get_digits
 from time import perf_counter_ns
 import math  # noqa: E402
+import numpy as np  # noqa: E402
 
 def bench_ns(func, times: int, *args, **kwargs):
     res = None
@@ -21,8 +22,9 @@ def bench_ns(func, times: int, *args, **kwargs):
     for i, t_ns in enumerate(times_ns[1:min(5, times)]):
         print(f"{i+1}) {((t_ns/1000) / 1000):.5f} ms")
     
-    print(f"Average time: {sum(times_ns)/len(times_ns) / 1000_000:.5f} ms")
-    return res
+    avg_ms = sum(times_ns)/len(times_ns) / 1000_000
+    print(f"Average time: {avg_ms:.5f} ms")
+    return res, avg_ms
 
 
 def get_digits_mod(n:int) -> list[int]:
@@ -34,11 +36,18 @@ def get_digits_mod(n:int) -> list[int]:
     d.reverse()
     return d
 
-def comp_bench(func_list: list, times: int, *args, **kwargs):
+def comp_bench(func_list, times: int, *args, **kwargs):
+    end_results = []
     for f in func_list:
         print(f"Testing function '{f.__name__}':")
-        bench_ns(f, int(times), *args, **kwargs)
+        res, avg_ms = bench_ns(f, int(times), *args, **kwargs)
         print()
+        end_results.append((f.__name__, avg_ms))
+    
+    end_results.sort(key=lambda x: x[1])
+    print("*** Results ***")
+    for r in end_results:
+        print(f"{r[1]:.5f} ms\t{r[0]}")
 
 def est_runtime(func_of_n, range_n, rep_times=5):
     avg_times = []
@@ -90,13 +99,10 @@ def sci_not(x:int, prec=8):
     return f"{sx[0]}.{''.join(str(d) for d in decimals[1:])} E+{len(sx)-1}"
 
 
-part_calc = em.PartitionsCalculator()
-# print(part_calc.saved_partitions)
-# print(part_calc.saved_pentagonals)
-for z in range(0, 50):
-    part_z = bench_ns(part_calc.partitions, 5, z)
-    # print(part_calc.saved_partitions)
-    
-    print(f"p({z}) = {part_z}\n")
-
-print(len(part_calc.saved_pentagonals), "pent numbers saved")
+def math_sqrt(x): math.sqrt(x)  
+def np_sqrt(x): np.sqrt(x)
+# benchmark square root functions:
+comp_bench(
+    [math_sqrt, np_sqrt], 
+    100000
+)
