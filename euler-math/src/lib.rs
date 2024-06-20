@@ -1,4 +1,4 @@
-use std::collections::hash_map::DefaultHasher;
+use std::collections::{hash_map::DefaultHasher, HashSet};
 #[allow(unused)]
 use num_traits::{One, Zero, ToPrimitive, FromPrimitive, PrimInt};
 use std::hash::{Hash, Hasher};
@@ -28,6 +28,7 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(factorial_split,m)?)?;
     m.add_class::<PartitionsCalculator>()?;
     m.add_function(wrap_pyfunction!(long_divide,m)?)?;
+    m.add_function(wrap_pyfunction!(pythagorean_triples,m)?)?;
     Ok(())
 }
 
@@ -38,6 +39,41 @@ impl UnsignedInteger for u32 {}
 impl UnsignedInteger for u64 {}
 impl UnsignedInteger for u128 {}
 impl UnsignedInteger for BigUint {}
+
+
+
+#[pyfunction]
+fn pythagorean_triples(max_side_length: u128) -> PyResult<Vec<(u128,u128,u128)>> {
+    
+    let mut res_set: HashSet<(u128,u128,u128)> = HashSet::new();
+
+    let mut m:u128 = 1;
+    let mut n:u128 = 1;
+    
+    // loop over possible values and add primitives to result
+    while (2*m).max(m.pow(2)-1) <= max_side_length {
+        while m > n {
+            // do stuff here
+            let mut a = m.pow(2) - n.pow(2);
+            let mut b = 2 * m * n;
+            let c = m.pow(2) + n.pow(2);
+
+            (a,b) = (a.min(b), a.max(b));
+
+            let mut d = 1;
+            while b*d <= max_side_length {
+                res_set.insert((a*d, b*d, c*d));
+                d += 1;
+            }
+            n += 1;
+        }
+        m += 1;
+        n = 1;
+    }
+
+    let res = res_set.into_iter().collect::<Vec<(u128,u128,u128)>>();
+    Ok(res)
+}
 
 
 #[pyfunction]

@@ -7,58 +7,47 @@
 <p>Find the least value of $M$ such that the number of solutions first exceeds one million.</p>
 
 """
-
+  
 import euler_math as em
 from math import sqrt
 
+
 def solve(debug=False):
-    
-    
-    
     # largest side of cuboid allowed
-    max_m = 2000
-    squares = [i**2 for i in range(0, 2*max_m+2)]
-    sq_set = set(squares)
-    
-    # largest perimeter of produced pythagorean triangle
-    max_p = 10 * max_m
-    max_c = max_m // 2  # true limit - triangle side can't be longer than other two combined
-    max_a = max_m // 4  # true limit - otherwise side 'b' is shorter than side 'a'
-    
-    max_c2 = squares[-1]
-    
-    triples = {}
-    # build list of integer triples
-    for a in range(1, max_a):
-        a2 = squares[a]
-        max_b = (max_p - a) // 2 + 1  # should be larger than side 'a'
-        for b in range(a+1, max_b):
-            b2 = squares[b]
-            # max_c = 1000 - a - b
-            c2 = a2 + b2
-
-            if c2 > max_c2:
-                break
-
-            if c2 in sq_set:
-                c = sqrt(c2)
-                triples[(a,b)] = c
-    
-    # now we've identified triples, we can determine cuboids
-    triples_counter = [0]*(max_m+1)
-    for i in range(1, max_m+1):
-        for j in range(1, i+1):
-            for k in range(1, j+1):
-                a, b = i, j+k
-                a, b = min(a,b), max(a,b)
-                if (a,b) in triples:
-                    c = triples[(a,b)]
-                    triples_counter[i] += 1
-                    # print(i, j, k)
-
-        if triples_counter[i] > 10:
-            print(f"At max_m of {i} we have {triples_counter[i]} distinct cuboids")
-    
     res = None  
+    print("Getting triples")
+    max_m = 100
+    triples = em.pythagorean_triples(max_m*2)
+    assert isinstance(triples, list)
+    print(f"Found {len(triples)} triples with largest side less than {max_m}")
+    
+    triples.sort(key=lambda x: x[0] - 1/x[1])
+    ways = set()
+    for trip in triples:
+        new_ways = set()
+        a = trip[0]
+        b = trip[1]
+        for i in range(1,a):
+            [x, y, z] = sorted([b, a-i, i])
+            if z <= max_m:
+                new_ways.add((x, y, z))
+        for i in range(1,b):
+            [x, y, z] = sorted([a, b-i, i])
+            if z <= max_m:
+                new_ways.add((x, y, z))
+        ways = ways.union(new_ways)
+        print(trip, len(ways))
+    
+    res = 0
+    last = 0
+    for way in sorted(ways, key=lambda x: x[2]):
+        res += 1
+        if way[2] > last:
+            print(f"\n M <= {way[2]} ==> up to {res} ways", end="", flush=True)
+            last = way[2]
+        else:
+            print(f"\r M <= {way[2]} ==> up to {res} ways", end="", flush=True)
+            
+    print()
     
     print(f'*** Answer: {res} ***')
