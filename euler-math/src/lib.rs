@@ -43,16 +43,15 @@ impl UnsignedInteger for BigUint {}
 
 
 #[pyfunction]
-fn pythagorean_triples(max_side_length: u128) -> PyResult<Vec<(u128,u128,u128)>> {
+fn pythagorean_triples(max_small_side: u128) -> PyResult<Vec<(u128,u128,u128)>> {
     
     let mut res_set: HashSet<(u128,u128,u128)> = HashSet::new();
 
     let mut m:u128 = 1;
-    let mut n:u128 = 1;
-    
+    let mut loopvar = true;
     // loop over possible values and add primitives to result
-    while (2*m).max(m.pow(2)-1) <= max_side_length {
-        while m > n {
+    while loopvar {
+        for n in 1..m {
             // do stuff here
             let mut a = m.pow(2) - n.pow(2);
             let mut b = 2 * m * n;
@@ -60,15 +59,19 @@ fn pythagorean_triples(max_side_length: u128) -> PyResult<Vec<(u128,u128,u128)>>
 
             (a,b) = (a.min(b), a.max(b));
 
+            if a > max_small_side {
+                if n == 1 {
+                    loopvar = false;
+                }
+                break;
+            }
             let mut d = 1;
-            while b*d <= max_side_length {
+            while a*d <= max_small_side {
                 res_set.insert((a*d, b*d, c*d));
                 d += 1;
             }
-            n += 1;
         }
         m += 1;
-        n = 1;
     }
 
     let res = res_set.into_iter().collect::<Vec<(u128,u128,u128)>>();

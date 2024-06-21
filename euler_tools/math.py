@@ -4,6 +4,37 @@ import euler_math as em
 import math
 from collections import Counter
 
+def generate_pythagorean_triples(M):
+    def gcd(x, y):
+        while y:
+            x, y = y, x % y
+        return x
+    
+    triples = set()
+    m = 2
+    while True:
+        for n in range(1, m):
+            # if (m - n) % 2 == 1 and gcd(m, n) == 1:
+            if True:
+                # Generate Pythagorean triple
+                a = m * m - n * n
+                b = 2 * m * n
+                c = m * m + n * n
+                
+                a,b = min(a,b), max(a,b)
+                if a > M:
+                    if n == 1:
+                        return triples
+                    else:
+                        break
+                
+                d=1
+                while d*a <= M:            
+                    triples.add((d*a, d*b, d*c))
+                    d += 1
+        m += 1
+
+
 
 def roll_dice_combos(max_roll, dice_count, debug=False) -> Counter:
     # returns a counter with the number of ways for each tuple combination
