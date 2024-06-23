@@ -29,6 +29,7 @@ fn euler_math(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PartitionsCalculator>()?;
     m.add_function(wrap_pyfunction!(long_divide,m)?)?;
     m.add_function(wrap_pyfunction!(pythagorean_triples,m)?)?;
+    m.add_function(wrap_pyfunction!(product,m)?)?;
     Ok(())
 }
 
@@ -40,6 +41,11 @@ impl UnsignedInteger for u64 {}
 impl UnsignedInteger for u128 {}
 impl UnsignedInteger for BigUint {}
 
+
+#[pyfunction]
+fn product(terms: Vec<i128>) -> PyResult<i128> {
+    Ok(terms.into_par_iter().product())
+}
 
 
 #[pyfunction]

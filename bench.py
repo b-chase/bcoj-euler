@@ -3,6 +3,7 @@ from euler_tools.math import get_digits
 from time import perf_counter_ns
 import math  # noqa: E402
 import numpy as np  # noqa: E402
+from random import randint
 
 def bench_ns(func, times: int, *args, **kwargs):
     res = None
@@ -99,10 +100,13 @@ def sci_not(x:int, prec=8):
     return f"{sx[0]}.{''.join(str(d) for d in decimals[1:])} E+{len(sx)-1}"
 
 
-def math_sqrt(x): math.sqrt(x)  
-def np_sqrt(x): np.sqrt(x)
+def rust_product(x): em.product(x)  
+def math_product(x): math.prod(x)
+# def int_rt(x): em.int_sqrt(x)
 # benchmark square root functions:
+values = [randint(1,10) for _ in range(3000)]
 comp_bench(
-    [math_sqrt, np_sqrt], 
-    100000
+    [rust_product, math_product], 
+    100000, 
+    values
 )
