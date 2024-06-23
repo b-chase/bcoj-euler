@@ -19,7 +19,31 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from time import perf_counter_ns
 
+
+def factor_ways(m) -> list[list[int]]:
+    m_rt = em.int_rt(m)
+    
+    
+    
+    pass
+
+
 def solve(debug=False):
+    res = None
+    
+    # take two - determine factors for numbers, then generate minprod candidates
+    
+    for m in range(4, 100):
+        factoring_ways = factor_ways(m)
+    
+    
+    
+    print(f'*** Answer: {res} ***')
+    
+    
+    
+
+def solve_old(debug=False):
     
     res=None
     
