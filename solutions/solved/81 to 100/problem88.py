@@ -17,47 +17,106 @@ import euler_math as em
 from math import prod, factorial
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from multiprocessing import freeze_support
 from time import perf_counter_ns
+from collections import defaultdict
 
 
-def factor_ways(m) -> list[list[int]]:
-    m_rt = em.int_rt(m)
+def k_from_factor_product(product, factors):
+    n = product - sum(factors)  # number of 1s
+    return n + len(factors)
+
+
+
+
+def iter_factors(factors:list[int]=[2,2], product:int=None, max_product:int=24, extendable=False) -> dict[int,set[int]]:
+    factor_count = len(factors)
     
+    if product is None:
+        product = prod(factors)
+    if product > max_product:
+        return {}
     
+    res = defaultdict(lambda: set())
+    res[1] = set([2])
     
-    pass
+    x = factors[0]
+    rem_terms = factors[1:]
+    sub_product = product // x
+    max_x = max_product // sub_product
+    # print(factors, sub_product, max_x)
+    for p_x in range(x, max_x+1):
+        # increment first term until too large, and get sublists that are allowed with it
+        if len(rem_terms) > 1:
+            max_sub_product = min(p_x**len(rem_terms), max_product // p_x)
+            sub_iterations = iter_factors(factors[1:], sub_product, max_sub_product)
+            for k, m_set in sub_iterations.items():
+                res[k].update(m_set)
+                for m in m_set:
+                    m_new = m*p_x
+                    k_new = k + m_new - m - p_x + 1
+                    res[k_new].add(m_new)
+        elif len(rem_terms) == 1:
+            for r in range(rem_terms[0], max_product//p_x + 1):
+                m_new = r*p_x
+                k_new = k_from_factor_product(m_new, [p_x, r])
+                res[k_new].add(m_new)
+            
+    
+    if extendable:
+        extended_gen = iter_factors([*factors, 2], product*2, max_product, True)
+        for k, m_set in extended_gen.items():
+            res[k].update(m_set)
+            
+    return res
+            
+        
+    
+
 
 
 def solve(debug=False):
-    res = None
     
-    # take two - determine factors for numbers, then generate minprod candidates
+    max_k = 12000
     
-    for m in range(4, 100):
-        factoring_ways = factor_ways(m)
+    if not debug:
+        # this works so much faster
+        max_m = max_k*2
+        
+        factor_lists = iter_factors(max_product=max_m, extendable=True)
+        
+        min_m_for_k = [(k,min(set_m)) for k, set_m in factor_lists.items()]
+        min_m_for_k.sort(key=lambda x: x[0])
+        
+        # for k,m in min_m_for_k:
+        #     print(f"k={k}: M={m}")
+        # res.sort(key=lambda x: min(x[1]))
+        
+        res = sum(set(x[1] for x in min_m_for_k if x[0] <= max_k and x[0]>=2))
+        
+        print(f'*** Answer: {res} ***')
+        return
     
-    
-    
-    print(f'*** Answer: {res} ***')
-    
-    
-    
-
-def solve_old(debug=False):
-    
-    res=None
     
     def min_mult(mult_target:int, sum_target:int, term_ct:int) -> list[int]:
         # terms will have product of mult-target and sum of sum-target
+        # arg_tuple = (mult_target, sum_target, term_ct)
+        # past_result = saved.get(arg_tuple)
+        # if past_result is not None:
+        #     return past_result
+            
         max_term_mult = int(mult_target // (2**(term_ct-1)))  # lowest other terms can be is '2'
         max_term_sum = sum_target - 2*(term_ct-1)  # lowest other terms can be is '2'
         max_term = min(max_term_mult, max_term_sum)
         if term_ct==1:
             if mult_target==sum_target:
+                # saved[arg_tuple] = [mult_target]
                 return [mult_target]
             else:
-                return None
+                # saved[arg_tuple] = False
+                return False
         # print((mult_target, sum_target), term_ct, f'max_term={max_term}')
+        
         if mult_target % 2 == 1:
             factor_range = range(3, max_term+1, 2)
         else:
@@ -67,7 +126,10 @@ def solve_old(debug=False):
             if mult_target % x == 0:
                 x_res = min_mult(mult_target//x, sum_target-x, term_ct-1)
                 if x_res:
+                    # saved[arg_tuple] = [x, *x_res]
                     return [x, *x_res]
+        
+        # saved[arg_tuple] = False
     
     def min_product_sum_num(k):
         start = perf_counter_ns()
@@ -94,11 +156,10 @@ def solve_old(debug=False):
             if total > break_limit:
                 raise Exception(f'Reached breaking limit for k={k}  ({total}>{break_limit})')
     
-    max_k = 500
     
     min_vals_set = set()
 
-    min_ratio = float('Inf')
+    # min_ratio = float('Inf')
     # for k in tqdm(range(2, max_k+1), desc='checking nums', total=max_k-1):
     for k in range(2,max_k+1):
         min_sumprod_num, term_desc = min_product_sum_num(k)
@@ -108,8 +169,8 @@ def solve_old(debug=False):
         #     min_ratio = ratio
         #     print(f"({ratio:.4f}) {term_desc}")
         min_vals_set.add(min_sumprod_num)
-        print(term_desc)
-    print()
+        # print(term_desc)
+    # print()
     
     # with ThreadPoolExecutor() as executor:
     #     futures = []
