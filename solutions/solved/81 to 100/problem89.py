@@ -15,12 +15,22 @@ XVI</p>
 """
 
 import euler_math as em
+from euler_tools.math import roman_numeral_to_int, int_to_roman_numeral
+
 
 def solve(debug=False):
-    
+    # print(inv_roman_numerals)
     with open('solutions/problem89.txt') as f:
-        pass
+        roman_nums = [x.strip() for x in f.readlines()]
     
-    res=None
+    res = 0
+    
+    for rn in roman_nums:
+        num_val = roman_numeral_to_int(rn)
+        fixed_rn = int_to_roman_numeral(num_val)
+        if fixed_rn != rn:
+            res += (len(rn) - len(fixed_rn))
+        # print(rn, num_val, fixed_rn, rn==fixed_rn)
+    
     
     print(f'*** Answer: {res} ***')

@@ -4,6 +4,66 @@ import euler_math as em
 import math
 from collections import Counter
 
+roman_numerals = {
+    'I':1,
+    'V':5,
+    'X':10,
+    'L':50,
+    'C':100,
+    'D':500,
+    'M':1000
+}
+
+inv_roman_numerals = [(v,k) for k,v in roman_numerals.items()]
+inv_roman_numerals.sort(key=lambda x: x[0], reverse=True)
+
+def roman_numeral_to_int(rn:str) -> int:
+    res = 0
+    numerals = [roman_numerals[c] for c in rn]
+    
+    i = 0
+    # iterate through number, adding up values
+    while i < len(numerals)-1:
+        num = numerals[i]
+        next_num = numerals[i+1]
+        # if it's a subtraction, modify and increment index
+        if next_num > num:
+            num = next_num - num
+            i += 1
+        # sum to total
+        res += num
+        i += 1
+    # if we didn't skip the ending with a subtraction pair, increment by that value too
+    if i == len(numerals)-1:
+        res += numerals[-1]
+    return res
+
+def int_to_roman_numeral(x:int) -> str:
+    res = ''
+    i = 0
+    rem = x
+    while i < len(inv_roman_numerals):
+        rn_val, rn_char = inv_roman_numerals[i]
+        char_ct = rem // rn_val
+        # update string and remainder
+        res += char_ct * rn_char
+        rem %= rn_val
+        # check if we should use a subtraction
+        # or just do a replace later  <- this is the way
+        i += 1
+    
+    replacements = [
+        ('VIIII', 'IX'), ('IIII', 'IV'), 
+        ('LXXXX', 'XC'), ('XXXX', 'XL'),
+        ('DCCCC', 'CM'), ('CCCC', 'CD')
+    ]
+    
+    for bad, good in replacements:
+        res = res.replace(bad, good)
+    
+    return res
+        
+
 def generate_pythagorean_triples(M):
     def gcd(x, y):
         while y:
